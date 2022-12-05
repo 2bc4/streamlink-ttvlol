@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timedelta
 from random import random
 from typing import List, NamedTuple, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode, quote
 
 from streamlink.exceptions import NoStreamsError, PluginError
 from streamlink.plugin import Plugin, pluginargument, pluginmatcher
@@ -211,8 +211,11 @@ class UsherService:
     def __init__(self, session):
         self.session = session
 
+        use_ttvlol = self.session.get_plugin_option("twitch", "ttvlol")
+        self.proxy_m3u8 = self.session.get_plugin_option("twitch", "proxy-m3u8") if not use_ttvlol else "https://api.ttv.lol"
+
     def _create_url(self, endpoint, **extra_params):
-        url = f"https://usher.ttvnw.net{endpoint}"
+        url = self.proxy_m3u8 + f"{endpoint}" if self.proxy_m3u8 else f"https://usher.ttvnw.net{endpoint}"
         params = {
             "player": "twitchweb",
             "p": int(random() * 999999),
@@ -223,7 +226,11 @@ class UsherService:
         }
         params.update(extra_params)
 
-        req = self.session.http.prepare_new_request(url=url, params=params)
+        if self.proxy_m3u8:
+            encoded_url = quote(url + '?' + urlencode(params), safe='/:')
+            req = self.session.http.prepare_new_request(url=encoded_url)
+        else:
+            req = self.session.http.prepare_new_request(url=url, params=params)
 
         return req.url
 
@@ -243,7 +250,9 @@ class UsherService:
             log.debug(f"{extra_params_debug!r}")
         except PluginError:
             pass
-        return self._create_url(f"/api/channel/hls/{channel}.m3u8", **extra_params)
+
+        path = f"/playlist/{channel}.m3u8" if self.proxy_m3u8 else f"/api/channel/hls/{channel}.m3u8"
+        return self._create_url(path, **extra_params)
 
     def video(self, video_id, **extra_params):
         return self._create_url(f"/vod/{video_id}", **extra_params)
@@ -567,6 +576,21 @@ class TwitchAPI:
         Can be repeated to add multiple parameters.
     """,
 )
+@pluginargument(
+    "proxy-m3u8",
+    metavar="URL",
+    help="""
+        Proxy m3u8 request through a server that supports the TTVLOL API.
+    """,
+)
+@pluginargument(
+    "ttvlol",
+    action="store_true",
+    help="""
+        Alias for --twitch-proxy-m3u8=https://api.ttv.lol
+    """,
+)
+
 class Twitch(Plugin):
     @classmethod
     def stream_weight(cls, stream):
@@ -671,7 +695,16 @@ class Twitch(Plugin):
             "origin": "https://player.twitch.tv",
         })
         sig, token, restricted_bitrates = self._access_token(True, self.channel)
-        url = self.usher.channel(self.channel, sig=sig, token=token, fast_bread=True)
+
+        if self.usher.proxy_m3u8:
+            self.session.http.headers.update({
+                 "referer": "https://player.twitch.tv",
+                 "origin": "https://player.twitch.tv",
+                 "X-Donate-To": "https://ttv.lol/donate"
+            })
+            url = self.usher.channel(self.channel, fast_bread=True)
+        else:
+            url = self.usher.channel(self.channel, sig=sig, token=token, fast_bread=True)
 
         return self._get_hls_streams(url, restricted_bitrates)
 
