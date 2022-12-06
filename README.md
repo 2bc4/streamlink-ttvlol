@@ -34,7 +34,7 @@ This is an alias for `--twitch-proxy-m3u8=https://api.ttv.lol`. No additional co
 ```
 --twitch-proxy-m3u8=http://localhost:9595
 ```
-If you're running luminous-ttv server on a different computer other than the one you're watching on. You will need to pass the ```--address 0.0.0.0``` Flag when launching luminous. As well as change localhost to the address of the computer the luminous server is running on. As well as, **ensure you're running the ```luminous-ttv.exe``` server before you open and while you're watching. Else you will receive a "```Unable to open URL```" error.**
+If you're running luminous-ttv server on a different computer other than the one you're watching on. You will need to pass the ```--address 0.0.0.0``` Flag when launching luminous. As well as change localhost to the address of the computer the luminous server is running on. As well as, **ensure you're running the ```luminous-ttv.exe``` server before you open and while you're watching a stream. Else you will receive a "```Unable to open URL```" error.** 
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the Main tab of settings. You can then add the above flag of your choosing to the "Custom parameters" box.
