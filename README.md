@@ -4,7 +4,7 @@ This is a modified twitch.py file to work with [ttv.lol's](https://github.com/TT
 
 ## Installation
 
-Download the file [here](https://github.com/2bc4/streamlink-ttvlol/archive/refs/heads/master.zip). 
+Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/download/20221206/twitch.py). 
 ### Windows
 Open up windows explorer, and navigate to the following dir.
 ```
