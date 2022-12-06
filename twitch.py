@@ -229,6 +229,9 @@ class UsherService:
         if self.proxy_m3u8:
             encoded_url = quote(url + '?' + urlencode(params), safe='/:')
             req = self.session.http.prepare_new_request(url=encoded_url)
+
+            log.info(f"Using m3u8 proxy '{self.proxy_m3u8}'")
+            log.debug(f"m3u8 proxy URL: {url}")
         else:
             req = self.session.http.prepare_new_request(url=url, params=params)
 
