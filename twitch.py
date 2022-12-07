@@ -707,11 +707,6 @@ class Twitch(Plugin):
 
         # only get the token once the channel has been resolved
         log.debug(f"Getting live HLS streams for {self.channel}")
-        self.session.http.headers.update({
-            "referer": "https://player.twitch.tv",
-            "origin": "https://player.twitch.tv",
-        })
-        sig, token, restricted_bitrates = self._access_token(True, self.channel)
 
         if self.usher.proxy_m3u8:
             self.session.http.headers.update({
@@ -720,7 +715,13 @@ class Twitch(Plugin):
                  "X-Donate-To": "https://ttv.lol/donate"
             })
             url = self.usher.channel(self.channel)
+            restricted_bitrates = None
         else:
+            self.session.http.headers.update({
+                "referer": "https://player.twitch.tv",
+                "origin": "https://player.twitch.tv",
+            })
+            sig, token, restricted_bitrates = self._access_token(True, self.channel)
             url = self.usher.channel(self.channel, sig=sig, token=token, fast_bread=True)
 
         return self._get_hls_streams(url, restricted_bitrates)
@@ -750,9 +751,10 @@ class Twitch(Plugin):
             else:
                 raise PluginError(err)
 
-        for name in restricted_bitrates:
-            if name not in streams:
-                log.warning(f"The quality '{name}' is not available since it requires a subscription.")
+        if not self.usher.proxy_m3u8:
+            for name in restricted_bitrates:
+                if name not in streams:
+                    log.warning(f"The quality '{name}' is not available since it requires a subscription.")
 
         return streams
 
