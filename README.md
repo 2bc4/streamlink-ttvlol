@@ -9,6 +9,9 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/download/20221206/twitch.py). 
 ### Windows
+#### Automatically
+Extract the release zip, and open the "streamlink-ttvlol_install.bat". This will require administrator prvileges since streamlink is by default installed in the Program Files directory. **Keep in mind, this will only work if streamlink was installed with [streamlinks installer](https://github.com/streamlink/windows-builds).**
+#### Manually
 Open windows explorer, and navigate to the following directory.
 ```
 C:\Program Files\Streamlink\pkgs\streamlink\plugins
