@@ -215,7 +215,7 @@ class UsherService:
         self.proxy_m3u8 = self.session.get_plugin_option("twitch", "proxy-m3u8") if not use_ttvlol else "https://api.ttv.lol"
 
     def _create_url(self, endpoint, **extra_params):
-        url = self.proxy_m3u8 + f"{endpoint}" if self.proxy_m3u8 else f"https://usher.ttvnw.net{endpoint}"
+        url = f"https://usher.ttvnw.net{endpoint}"
         params = {
             "player": "twitchweb",
             "p": int(random() * 999999),
@@ -226,14 +226,26 @@ class UsherService:
         }
         params.update(extra_params)
 
-        if self.proxy_m3u8:
-            encoded_url = quote(url + '?' + urlencode(params), safe='/:')
-            req = self.session.http.prepare_new_request(url=encoded_url)
+        req = self.session.http.prepare_new_request(url=url, params=params)
 
-            log.info(f"Using m3u8 proxy '{self.proxy_m3u8}'")
-            log.debug(f"m3u8 proxy URL: {encoded_url}")
-        else:
-            req = self.session.http.prepare_new_request(url=url, params=params)
+        return req.url
+
+    def _create_url_ttvlol(self, channel):
+        url = self.proxy_m3u8 + f"/playlist/{channel}.m3u8"
+        params = {
+            "player": "twitchweb",
+            "type": "any",
+            "allow_source": "true",
+            "allow_audio_only": "true",
+            "allow_spectre": "false",
+            "fast_bread": "true"
+        }
+
+        encoded_url = quote(url + '?' + urlencode(params), safe='/:')
+        req = self.session.http.prepare_new_request(url=encoded_url)
+
+        log.info(f"Using m3u8 proxy '{self.proxy_m3u8}'")
+        log.debug(f"m3u8 proxy URL: {encoded_url}")
 
         return req.url
 
@@ -254,8 +266,10 @@ class UsherService:
         except PluginError:
             pass
 
-        path = f"/playlist/{channel}.m3u8" if self.proxy_m3u8 else f"/api/channel/hls/{channel}.m3u8"
-        return self._create_url(path, **extra_params)
+        if self.proxy_m3u8:
+            return self._create_url_ttvlol(channel)
+        else:
+            return self._create_url(f"/api/channel/hls/{channel}.m3u8", **extra_params)
 
     def video(self, video_id, **extra_params):
         return self._create_url(f"/vod/{video_id}", **extra_params)
@@ -705,7 +719,7 @@ class Twitch(Plugin):
                  "origin": "https://player.twitch.tv",
                  "X-Donate-To": "https://ttv.lol/donate"
             })
-            url = self.usher.channel(self.channel, fast_bread=True)
+            url = self.usher.channel(self.channel)
         else:
             url = self.usher.channel(self.channel, sig=sig, token=token, fast_bread=True)
 
