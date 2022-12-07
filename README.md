@@ -7,7 +7,7 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 ## Installation
 
-Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/download/20221206/twitch.py). 
+Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). 
 ### Windows
 Open windows explorer, and navigate to the following directory.
 ```
