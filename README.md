@@ -38,3 +38,6 @@ If you're running luminous-ttv server on a different computer other than the one
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the Main tab of settings. You can then add the above flag of your choosing to the "Custom parameters" box.
+
+## Chatterino
+If you're using [Chatterino](https://github.com/Chatterino/chatterino2) with Streamlink you'll need to add the above flag of your choosing to Settings -> External Tools -> Streamlink -> Additional options.
