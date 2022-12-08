@@ -1,6 +1,6 @@
 # streamlink-ttvlol
 ## About
-This is a modified twitch.py file to work with the [ttv.lol](https://github.com/TTV-LOL/extensions) API or with the [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) server. This proxies the m3u8 request to a country where Twitch does not serve ads.
+This is a modified twitch.py file to work with the [ttv.lol](https://github.com/TTV-LOL/extensions) API or with the [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) server. This proxies the playlist request to a country where Twitch does not serve ads.
 
 ## Should you block ads?
 Blocking ads is your choice. I lean more to the opinion of this [video](https://youtu.be/oV3s_sESnmE). If you enjoy the creator you're watching. Ensure you support them through direct donation or other means. 👍
@@ -29,10 +29,10 @@ If you're using streamlink with no front end. The following flags work for ttv.l
 ```
 --twitch-ttvlol
 ```
-This is an alias for `--twitch-proxy-m3u8=https://api.ttv.lol`. No additional configuration is required.
+This is an alias for `--twitch-proxy-playlist=https://api.ttv.lol`. No additional configuration is required.
 ### luminous-ttv
 ```
---twitch-proxy-m3u8=http://localhost:9595
+--twitch-proxy-playlist=http://localhost:9595
 ```
 If you're running luminous-ttv server on a different computer other than the one you're watching on. You will need to pass the ```--address 0.0.0.0``` Flag when launching luminous. As well as change localhost to the address of the computer the luminous server is running on. As well as, **ensure you're running the ```luminous-ttv.exe``` server before you open and while you're watching a stream. Else you will receive a "```Unable to open URL```" error.** 
 

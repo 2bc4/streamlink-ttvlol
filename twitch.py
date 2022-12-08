@@ -212,7 +212,7 @@ class UsherService:
         self.session = session
 
         use_ttvlol = self.session.get_plugin_option("twitch", "ttvlol")
-        self.proxy_m3u8 = self.session.get_plugin_option("twitch", "proxy-m3u8") if not use_ttvlol else "https://api.ttv.lol"
+        self.proxy_playlist = self.session.get_plugin_option("twitch", "proxy-playlist") if not use_ttvlol else "https://api.ttv.lol"
 
     def _create_url(self, endpoint, **extra_params):
         url = f"https://usher.ttvnw.net{endpoint}"
@@ -231,7 +231,7 @@ class UsherService:
         return req.url
 
     def _create_url_ttvlol(self, channel):
-        url = self.proxy_m3u8 + f"/playlist/{channel}.m3u8"
+        url = self.proxy_playlist + f"/playlist/{channel}.m3u8"
         params = {
             "player": "twitchweb",
             "type": "any",
@@ -244,8 +244,8 @@ class UsherService:
         encoded_url = quote(url + '?' + urlencode(params), safe='/:')
         req = self.session.http.prepare_new_request(url=encoded_url)
 
-        log.info(f"Using m3u8 proxy '{self.proxy_m3u8}'")
-        log.debug(f"m3u8 proxy URL: {encoded_url}")
+        log.info(f"Using playlist proxy '{self.proxy_playlist}'")
+        log.debug(f"Playlist proxy URL: {encoded_url}")
 
         return req.url
 
@@ -266,7 +266,7 @@ class UsherService:
         except PluginError:
             pass
 
-        if self.proxy_m3u8:
+        if self.proxy_playlist:
             return self._create_url_ttvlol(channel)
         else:
             return self._create_url(f"/api/channel/hls/{channel}.m3u8", **extra_params)
@@ -594,17 +594,17 @@ class TwitchAPI:
     """,
 )
 @pluginargument(
-    "proxy-m3u8",
+    "proxy-playlist",
     metavar="URL",
     help="""
-        Proxy m3u8 request through a server that supports the TTVLOL API.
+        Proxy playlist request through a server that supports the TTVLOL API.
     """,
 )
 @pluginargument(
     "ttvlol",
     action="store_true",
     help="""
-        Alias for --twitch-proxy-m3u8=https://api.ttv.lol
+        Alias for --twitch-proxy-playlist=https://api.ttv.lol
     """,
 )
 
@@ -708,7 +708,7 @@ class Twitch(Plugin):
         # only get the token once the channel has been resolved
         log.debug(f"Getting live HLS streams for {self.channel}")
 
-        if self.usher.proxy_m3u8:
+        if self.usher.proxy_playlist:
             self.session.http.headers.update({
                  "referer": "https://player.twitch.tv",
                  "origin": "https://player.twitch.tv",
@@ -751,7 +751,7 @@ class Twitch(Plugin):
             else:
                 raise PluginError(err)
 
-        if not self.usher.proxy_m3u8:
+        if not self.usher.proxy_playlist:
             for name in restricted_bitrates:
                 if name not in streams:
                     log.warning(f"The quality '{name}' is not available since it requires a subscription.")
