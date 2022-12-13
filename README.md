@@ -1,6 +1,6 @@
 # streamlink-ttvlol
 ## About
-This is a modified twitch.py file to work with the [ttv.lol](https://github.com/TTV-LOL/extensions) API and [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv). This proxies the playlist request to a country where Twitch does not serve ads.
+This is a modified twitch.py file to work with the [ttv.lol](https://github.com/TTV-LOL/extensions) API and [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv). This proxies the playlist request to a country where Twitch does not serve ads. Note that ttv.lol and luminous can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist.
 
 ## Should you block ads?
 Blocking ads is your choice. I lean more to the opinion of this [video](https://youtu.be/oV3s_sESnmE). If you enjoy the creator you're watching consider supporting them through direct donation or other means. 👍
