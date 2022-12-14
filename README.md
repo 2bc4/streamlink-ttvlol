@@ -7,18 +7,22 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 ## Installation
 
-Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). 
+Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py) and copy it to the following directory (create the directory if it doesn't exist):
+
 ### Windows
-Open windows explorer and navigate to the following directory:
 ```
-C:\Program Files\Streamlink\pkgs\streamlink\plugins
+C:\%APPDATA%\streamlink\plugins
 ```
-Copy the twitch.py file you downloaded and click "Replace the file in the destination".
 ### Linux
-In most distros with streamlink installed by your package manager, the file should be located at:
 ```
-/usr/lib/python[PYTHON VERSION]/site-packages/streamlink/plugins/twitch.py
+~/.local/share/streamlink/plugins
 ```
+### Mac
+```
+${HOME}/Library/Application Support/streamlink/plugins
+```
+
+More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
 
 Once the modified file is in the correct location you will need to set the flags based on which proxy you wish to use.
 
