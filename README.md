@@ -9,15 +9,15 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py) and copy it to the following directory (create the directory if it doesn't exist):
 
-### Windows
+### Windows:
 ```
-C:\%APPDATA%\streamlink\plugins
+C:\Users\[USERNAME]\AppData\Roaming\streamlink\plugins
 ```
-### Linux
+### Linux:
 ```
 ~/.local/share/streamlink/plugins
 ```
-### Mac
+### Mac:
 ```
 ${HOME}/Library/Application Support/streamlink/plugins
 ```
