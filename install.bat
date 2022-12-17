@@ -6,6 +6,8 @@
 
 @echo off
 title streamlink-ttvlol_install
+:restart
+C:
 cd "%AppData%"
 if exist streamlink (
 	cd streamlink
@@ -15,12 +17,16 @@ if exist streamlink (
 	cls
 	color 0a
 	echo twitch.py copied successfully.
-	echo This window will now close.
-	TIMEOUT 5
+	echo This window will now close shortly.
+	TIMEOUT 7 >nul
 	exit
 ) else (
-	color 0c
-	echo Error.
-	echo Unable to find streamlink AppData directory.
-	pause
+	cd "%AppData%"
+	mkdir streamlink
+	cls
+	color 0e
+	echo streamlink directory not found. So it was created.
+	echo Press any key to resume installation...
+	pause >nul
+	goto restart
 )
