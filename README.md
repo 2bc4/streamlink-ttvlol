@@ -11,13 +11,13 @@ Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/late
 
 ### Windows:
 #### Automatically
-Download and extract the latest release zip. Then launch the "streamlink-ttvlol_install.bat" file.
-This should Automatically install the modified twitch.py file to your AppData streamlink folder.
+Download and extract the latest release zip and then run the `install.bat` file.
+This should automatically install the modified twitch.py file to your AppData streamlink folder.
 #### Manually
 ```
 C:\Users\%username%\AppData\Roaming\streamlink
 ```
-Now create the plugins folder and drop the twitch.py inside of it.
+Now create the `plugins` folder and drop the twitch.py inside of it.
 ### Linux:
 ```
 ~/.local/share/streamlink/plugins
