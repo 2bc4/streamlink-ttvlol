@@ -7,7 +7,7 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 ## Installation
 
-Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py) and copy it to the following directory (create the directory if it doesn't exist):
+Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/streamlink-ttvlol.zip) and copy it to the following directory (create the directory if it doesn't exist):
 
 ### Windows:
 #### Automatically
@@ -45,7 +45,7 @@ This is an alias for `--twitch-proxy-playlist=https://api.ttv.lol`. No additiona
 If you're running luminous-ttv server on a different computer other than the one you're watching on, you'll need to pass the ```--address 0.0.0.0``` flag when launching luminous. As well as change localhost to the address of the computer the luminous server is running on. **ensure you're running the ```luminous-ttv.exe``` server before you open and while you're watching a stream, or else you will receive a "```Unable to open URL```" error.**
 
 ## streamlink-twitch-gui
-If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the Main tab of settings. You can then add the above flag of your choosing to the "Custom parameters" box.
+If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above flag of your choosing to the "Custom parameters" box on the `Streaming` tab.
 
 ## Chatterino
 If you're using [Chatterino](https://github.com/Chatterino/chatterino2) with Streamlink you'll need to add the above flag of your choosing to Settings -> External Tools -> Streamlink -> Additional options.
