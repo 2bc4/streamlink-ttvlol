@@ -5,7 +5,7 @@
 :: Notes: 	 Changed file name.
 
 @echo off
-title streamlink-ttvlol_install
+title streamlink-ttvlol
 :restart
 C:
 cd "%AppData%"
