@@ -1,8 +1,8 @@
-:: Name:     streamlink-ttvlol_install.bat
+:: Name:     install.bat
 :: Purpose:  Copies the twitch.py file to streamlinks AppData dir
 :: Author:   https://steamcommunity.com/id/sokoloft/
-:: Revision: December 16/22
-:: Notes: 	 
+:: Revision: December 17/22
+:: Notes: 	 Changed file name.
 
 @echo off
 title streamlink-ttvlol_install
