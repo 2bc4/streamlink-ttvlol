@@ -10,9 +10,14 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py) and copy it to the following directory (create the directory if it doesn't exist):
 
 ### Windows:
+#### Automatically
+Download and extract the latest release zip. Then launch the "streamlink-ttvlol_install.bat" file.
+This should Automatically install the modified twitch.py file to your AppData streamlink folder.
+#### Manually
 ```
-C:\Users\[USERNAME]\AppData\Roaming\streamlink\plugins
+C:\Users\%username%\AppData\Roaming\streamlink
 ```
+Now create the plugins folder and drop the twitch.py inside of it.
 ### Linux:
 ```
 ~/.local/share/streamlink/plugins
