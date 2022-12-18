@@ -7,29 +7,31 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 ## Installation
 
-Download the file [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/streamlink-ttvlol.zip) and copy it to the following directory (create the directory if it doesn't exist):
+Download the latest release zip [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/streamlink-ttvlol.zip) and extract it, then follow the instructions below.
 
 ### Windows:
 #### Automatically
-Download and extract the latest release zip and then run the `install.bat` file.
-This should automatically install the modified twitch.py file to your AppData streamlink folder.
+Run the `install.bat` file. This should automatically install the modified twitch.py file to your AppData `streamlink` folder.
 #### Manually
+Navigate to:
 ```
 C:\Users\%username%\AppData\Roaming\streamlink
 ```
-Now create the `plugins` folder and drop the twitch.py inside of it.
+Then create the `plugins` folder and drop the twitch.py inside of it.
 ### Linux:
+Copy the `twitch.py` file to:
 ```
 ~/.local/share/streamlink/plugins
 ```
 ### Mac:
+Copy the `twitch.py` file to:
 ```
 ${HOME}/Library/Application Support/streamlink/plugins
 ```
 
 More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
 
-Once the modified file is in the correct location you will need to set the flags based on which proxy you wish to use.
+Once the `twitch.py` file is in the correct location you will need to set the flags based on which proxy you wish to use.
 
 ## Flags
 streamlink-ttvlol adds the flag `--twitch-proxy-playlist=URL`, this can be pointed at any server that supports the ttv.lol API.
