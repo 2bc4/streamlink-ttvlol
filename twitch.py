@@ -210,7 +210,6 @@ class TwitchHLSStream(HLSStream):
 class UsherService:
     def __init__(self, session):
         self.session = session
-
         use_ttvlol = self.session.get_plugin_option("twitch", "ttvlol")
         self.proxy_playlist = self.session.get_plugin_option("twitch", "proxy-playlist") if not use_ttvlol else "https://api.ttv.lol"
 
@@ -755,6 +754,9 @@ class Twitch(Plugin):
             for name in restricted_bitrates:
                 if name not in streams:
                     log.warning(f"The quality '{name}' is not available since it requires a subscription.")
+
+        if self.usher.proxy_playlist:
+            self.session.http.headers.pop("X-Donate-To")
 
         return streams
 
