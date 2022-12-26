@@ -17,7 +17,7 @@ If you wish to install Manually. You can get the latest release [here](https://g
 #### Automatically
 Copy the command below and paste it into powershell. ***Do not run powershell as admin.*** 
 
-If you don't know how to open powershell. Press windows key + r and type powershell into the box then press enter. Copy the contents of the box below and then right click in the powershell window and press enter.
+If you don't know how to open powershell. Press windows key + r and type ```powershell``` into the box and press enter. Copy the contents of the box below and then right click in the powershell window and press enter.
 ```
 $null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile .\AppData\Roaming\streamlink\plugins\twitch.py
 ```
