@@ -7,11 +7,14 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 ## Installation
 
-Download the latest release zip [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/streamlink-ttvlol.zip) and extract it, then follow the instructions below.
+Download the latest release zip [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py) and extract it, then follow the instructions below.
 
 ### Windows:
 #### Automatically
-Run the `install.bat` file. This should automatically install the modified twitch.py file to your AppData `streamlink` folder.
+Copy the command below and paste it into powershell. ***Do not run powershell as admin.*** If you don't know how to open powershell. Press windows key + r and type powershell into the box then press enter.
+```
+$null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile .\AppData\Roaming\streamlink\plugins\twitch.py
+```
 #### Manually
 Navigate to:
 ```
@@ -19,16 +22,28 @@ C:\Users\%username%\AppData\Roaming\streamlink
 ```
 Then create the `plugins` folder and drop the twitch.py inside of it.
 ### Linux:
+#### Automatically
+Run the below command in terminal. 
+```
+INSTALL_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/streamlink/plugins" mkdir -p "$INSTALL_DIR"; wget -O "$INSTALL_DIR" 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
+```
+#### Manually
 Copy the `twitch.py` file to:
 ```
 ~/.local/share/streamlink/plugins
 ```
 ### Mac:
+#### Automatically
+Run the below command in terminal.
+```
+
+```
+#### Manually
 Copy the `twitch.py` file to:
 ```
 ${HOME}/Library/Application Support/streamlink/plugins
 ```
-
+### Summery:
 More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
 
 Once the `twitch.py` file is in the correct location you will need to set the flags based on which proxy you wish to use.
