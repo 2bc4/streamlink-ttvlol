@@ -7,11 +7,17 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 ## Installation
 
-Download the latest release zip [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py) and extract it, then follow the instructions below.
+***Follow the instructions below for your specific operating system.***
+
+[Windows](#windows), [Linux](#linux) or [MacOS](#macos) .
+
+If you wish to install Manually. You can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
 
 ### Windows:
 #### Automatically
-Copy the command below and paste it into powershell. ***Do not run powershell as admin.*** If you don't know how to open powershell. Press windows key + r and type powershell into the box then press enter.
+Copy the command below and paste it into powershell. ***Do not run powershell as admin.*** 
+
+If you don't know how to open powershell. Press windows key + r and type powershell into the box then press enter. Copy the contents of the box below and then right click in the powershell window and press enter.
 ```
 $null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile .\AppData\Roaming\streamlink\plugins\twitch.py
 ```
@@ -32,11 +38,11 @@ Copy the `twitch.py` file to:
 ```
 ~/.local/share/streamlink/plugins
 ```
-### Mac:
+### MacOS:
 #### Automatically
 Run the below command in terminal.
 ```
-
+INSTALL_DIR="${HOME}/Library/Application Support/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
 ```
 #### Manually
 Copy the `twitch.py` file to:
