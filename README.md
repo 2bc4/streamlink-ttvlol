@@ -11,7 +11,7 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 [Windows](#windows), [Linux](#linux) or [MacOS](#macos) .
 
-If you wish to install Manually. You can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
+If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
 
 ### Windows:
 #### Automatically
