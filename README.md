@@ -31,7 +31,7 @@ Then create the `plugins` folder and drop the twitch.py inside of it.
 #### Automatically
 Run the below command in terminal. 
 ```
-INSTALL_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/streamlink/plugins" mkdir -p "$INSTALL_DIR"; wget -O "$INSTALL_DIR" 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
+INSTALL_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
 ```
 #### Manually
 Copy the `twitch.py` file to:
