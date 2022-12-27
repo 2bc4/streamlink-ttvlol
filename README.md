@@ -49,7 +49,7 @@ Copy the `twitch.py` file to:
 ```
 ${HOME}/Library/Application Support/streamlink/plugins
 ```
-### Summery:
+### Summary:
 More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
 
 Once the `twitch.py` file is in the correct location you will need to set the flags based on which proxy you wish to use.
