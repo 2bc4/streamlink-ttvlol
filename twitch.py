@@ -728,7 +728,7 @@ class Twitch(Plugin):
                 "origin": "https://player.twitch.tv",
             })
             sig, token, restricted_bitrates = self._access_token(True, self.channel)
-            url = self.usher.channel(f"https://usher.ttvnw.net", self.channel, sig=sig, token=token, fast_bread=True)
+            url = self.usher.channel("https://usher.ttvnw.net", self.channel, sig=sig, token=token, fast_bread=True)
             return self._get_hls_streams(url, restricted_bitrates)
 
     def _get_hls_streams_video(self):
