@@ -1,6 +1,6 @@
 # streamlink-ttvlol
 ## About
-This is a modified twitch.py file to work with the [ttv.lol](https://github.com/TTV-LOL/extensions) API and [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv). This proxies the playlist request to a country where Twitch does not serve ads. Note that ttv.lol and luminous can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist.
+Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API and [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv). This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL and luminous-ttv can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist.
 
 ## Should you block ads?
 Blocking ads is your choice. I lean more to the opinion of this [video](https://youtu.be/oV3s_sESnmE). If you enjoy the creator you're watching consider supporting them through direct donation or other means. 👍
@@ -9,7 +9,7 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 ***Follow the instructions below for your specific operating system.***
 
-[Windows](#windows), [Linux](#linux) or [MacOS](#macos) .
+[Windows](#windows), [Linux](#linux) or [MacOS](#macos).
 
 If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
 
@@ -59,8 +59,8 @@ More info on Streamlink plugin sideloading [here](https://streamlink.github.io/l
 Once the `twitch.py` file is in the correct location you will need to set the flags based on which proxy you wish to use.
 
 ## Flags
-streamlink-ttvlol adds the flag `--twitch-proxy-playlist=URL`, this can be pointed at any server that supports the ttv.lol API.
-### ttv.lol
+streamlink-ttvlol adds the `--twitch-proxy-playlist=URL` flag, it can be pointed at any server that supports the TTV.LOL API. It can also be pointed at multiple comma separated servers which will try each server in order until successful. For example `--twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev,https://eu2.luminous.dev`.
+### TTV.LOL
 ```
 --twitch-ttvlol
 ```
