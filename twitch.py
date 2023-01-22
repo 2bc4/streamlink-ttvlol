@@ -30,7 +30,6 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-TWITCH_USHER_BASE_URL = "https://usher.ttvnw.net"
 
 
 class TwitchSegment(NamedTuple):
@@ -208,18 +207,52 @@ class TwitchHLSStream(HLSStream):
         self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
 
 
+class TTVLOLService:
+    def __init__(self, session):
+        self.session = session
+        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist")
+        self.excluded_channels = self.session.get_plugin_option("twitch", "proxy-playlist-exclude")
+
+        if self.session.get_plugin_option("twitch", "ttvlol"):
+            self.playlist_proxies = ["https://api.ttv.lol"]
+
+        if isinstance(self.playlist_proxies, str):
+            self.playlist_proxies = [self.playlist_proxies]
+
+        if not isinstance(self.excluded_channels, list):
+            self.excluded_channels = [self.excluded_channels]
+
+    def _create_url(self, base, endpoint):
+        url = base + endpoint
+        params = {
+            "player": "twitchweb",
+            "type": "any",
+            "allow_source": "true",
+            "allow_audio_only": "true",
+            "allow_spectre": "false",
+            "fast_bread": "true",
+        }
+
+        encoded_url = quote(url + '?' + urlencode(params), safe=':/')
+        req = self.session.http.prepare_new_request(url=encoded_url)
+
+        return req.url
+
+    def channel(self, channel):
+        urls = []
+
+        for proxy in self.playlist_proxies:
+            urls.append(self._create_url(proxy, f"/playlist/{channel}.m3u8"))
+
+        return urls
+
+
 class UsherService:
     def __init__(self, session):
         self.session = session
-        use_ttvlol = self.session.get_plugin_option("twitch", "ttvlol")
-        self.proxy_playlist = self.session.get_plugin_option("twitch", "proxy-playlist") if not use_ttvlol else "https://api.ttv.lol"
 
-        #dankCrayon
-        if isinstance(self.proxy_playlist, str):
-            self.proxy_playlist = [self.proxy_playlist]
-
-    def _create_url(self, base, endpoint, **extra_params):
-        url = base + endpoint
+    def _create_url(self, endpoint, **extra_params):
+        url = f"https://usher.ttvnw.net{endpoint}"
         params = {
             "player": "twitchweb",
             "p": int(random() * 999999),
@@ -234,27 +267,7 @@ class UsherService:
 
         return req.url
 
-    def _create_url_ttvlol(self, base, endpoint, **extra_params):
-        url = base + endpoint
-        params = {
-            "player": "twitchweb",
-            "type": "any",
-            "allow_source": "true",
-            "allow_audio_only": "true",
-            "allow_spectre": "false",
-            "fast_bread": "true"
-        }
-        params.update(extra_params)
-
-        encoded_url = quote(url + '?' + urlencode(params), safe='/:')
-        req = self.session.http.prepare_new_request(url=encoded_url)
-
-        log.info(f"Using playlist proxy '{base}'")
-        log.debug(f"Playlist proxy URL: {encoded_url}")
-
-        return req.url
-
-    def channel(self, base, channel, **extra_params):
+    def channel(self, channel, **extra_params):
         try:
             extra_params_debug = validate.Schema(
                 validate.get("token"),
@@ -270,12 +283,7 @@ class UsherService:
             log.debug(f"{extra_params_debug!r}")
         except PluginError:
             pass
-
-        #dankCrayon
-        if base is not TWITCH_USHER_BASE_URL:
-            return self._create_url_ttvlol(base, f"/playlist/{channel}.m3u8", **extra_params)
-        else:
-            return self._create_url(base, f"/api/channel/hls/{channel}.m3u8", **extra_params)
+        return self._create_url(f"/api/channel/hls/{channel}.m3u8", **extra_params)
 
     def video(self, video_id, **extra_params):
         return self._create_url(f"/vod/{video_id}", **extra_params)
@@ -605,6 +613,16 @@ class TwitchAPI:
     type=comma_list,
     help="""
         Proxy playlist request through a server that supports the TTV.LOL API.
+
+        Can be multiple comma separated server URLs to be used as fallback.
+    """,
+)
+@pluginargument(
+    "proxy-playlist-exclude",
+    metavar="CHANNELS",
+    type=comma_list,
+    help="""
+        Exclude channel(s) from playlist proxy.
     """,
 )
 @pluginargument(
@@ -612,16 +630,9 @@ class TwitchAPI:
     action="store_true",
     help="""
         Alias for --twitch-proxy-playlist=https://api.ttv.lol
+        Overrides --twitch-proxy-playlist
     """,
 )
-@pluginargument(
-    "proxy-playlist-exclude",
-    type=comma_list,
-    help="""
-        Exclude channel(s) from playlist proxy.
-    """,
-)
-
 class Twitch(Plugin):
     @classmethod
     def stream_weight(cls, stream):
@@ -655,6 +666,7 @@ class Twitch(Plugin):
 
         self.api = TwitchAPI(session=self.session)
         self.usher = UsherService(session=self.session)
+        self.ttvlol = TTVLOLService(session=self.session)
 
         def method_factory(parent_method):
             def inner():
@@ -721,30 +733,30 @@ class Twitch(Plugin):
 
         # only get the token once the channel has been resolved
         log.debug(f"Getting live HLS streams for {self.channel}")
+        self.session.http.headers.update({
+            "referer": "https://player.twitch.tv",
+            "origin": "https://player.twitch.tv",
+        })
+        sig, token, restricted_bitrates = self._access_token(True, self.channel)
+        url = self.usher.channel(self.channel, sig=sig, token=token, fast_bread=True)
 
-        excluded_channels = self.session.get_plugin_option("twitch", "proxy-playlist-exclude")
+        return self._get_hls_streams(url, restricted_bitrates)
 
-        #dankCrayon
-        if not isinstance(excluded_channels, list):
-            excluded_channels = [excluded_channels]
+    def _get_hls_streams_live_ttvlol(self):
+        if self._check_for_rerun():
+            return
 
-        if self.usher.proxy_playlist and not self.channel in excluded_channels:
-            self.session.http.headers.update({
-                 "referer": "https://player.twitch.tv",
-                 "origin": "https://player.twitch.tv",
-                 "X-Donate-To": "https://ttv.lol/donate"
-            })
-            streams = self._get_hls_streams_ttvlol(self.usher.proxy_playlist)
-            self.session.http.headers.pop("X-Donate-To")
-            return streams
-        else:
-            self.session.http.headers.update({
-                "referer": "https://player.twitch.tv",
-                "origin": "https://player.twitch.tv",
-            })
-            sig, token, restricted_bitrates = self._access_token(True, self.channel)
-            url = self.usher.channel(TWITCH_USHER_BASE_URL, self.channel, sig=sig, token=token, fast_bread=True)
-            return self._get_hls_streams(url, restricted_bitrates)
+        log.debug(f"Getting live HLS streams for {self.channel}")
+        self.session.http.headers.update({
+            "referer": "https://player.twitch.tv",
+            "origin": "https://player.twitch.tv",
+            "X-Donate-To": "https://ttv.lol/donate",
+        })
+        urls = self.ttvlol.channel(self.channel)
+        streams = self._get_hls_streams_ttvlol(urls)
+
+        self.session.http.headers.pop("X-Donate-To")
+        return streams
 
     def _get_hls_streams_video(self):
         log.debug(f"Getting HLS streams for video ID {self.video_id}")
@@ -777,24 +789,17 @@ class Twitch(Plugin):
 
         return streams
 
-    #waytoodank
-    def _get_hls_streams_ttvlol(self, proxies, **extra_params):
-        time_offset = self.params.get("t", 0)
-        if time_offset:
-            try:
-                time_offset = hours_minutes_seconds(time_offset)
-            except ValueError:
-                time_offset = 0
-
-        for proxy in proxies:
-            url = self.usher.channel(proxy, self.channel)
+    def _get_hls_streams_ttvlol(self, urls):
+        for url in urls:
+            domain = urlparse(url).netloc
+            log.info(f"Using playlist proxy '{domain}'")
 
             try:
-                return TwitchHLSStream.parse_variant_playlist(self.session, url, start_offset=time_offset, **extra_params)
+                return TwitchHLSStream.parse_variant_playlist(self.session, url)
             except OSError as err:
                 log.warning(err)
 
-        raise PluginError("No proxies available")
+        raise PluginError("No playlist proxies available.")
 
     def _get_clips(self):
         try:
@@ -811,7 +816,10 @@ class Twitch(Plugin):
         elif self.clip_name:
             return self._get_clips()
         elif self.channel:
-            return self._get_hls_streams_live()
+            if self.ttvlol.playlist_proxies and not self.channel in self.ttvlol.excluded_channels:
+                return self._get_hls_streams_live_ttvlol()
+            else:
+                return self._get_hls_streams_live()
 
 
 __plugin__ = Twitch
