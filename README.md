@@ -13,62 +13,83 @@ Blocking ads is your choice. I lean more to the opinion of this [video](https://
 
 If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
 
+---
+
 ### Windows:
 #### Automatically
 Copy the command below and paste it into powershell. ***Do not run powershell as admin.*** 
 
-If you don't know how to open powershell. Press windows key + r and type ```powershell``` into the box and press enter. Copy the contents of the box below and then right click in the powershell window and press enter.
-```
-$null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile .\AppData\Roaming\streamlink\plugins\twitch.py
-```
-***NOTE*** If you cannot resolve the URL (receive an error), this is likely due to your TLS version. Run the command below to set your TLS version to 1.2 and re-run the above command.
-```
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-```
+If you don't know how to open powershell. Press windows key + r and type ```powershell``` into the box and press enter. Copy the contents of the box below and then right click in the powershell window and press enter:
+
+    $null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile .\AppData\Roaming\streamlink\plugins\twitch.py
+
+***NOTE*** If you cannot resolve the URL (receive an error), this is likely due to your TLS version. Run the command below to set your TLS version to 1.2 and re-run the above command:
+
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 #### Manually
 Navigate to:
-```
-C:\Users\%username%\AppData\Roaming\streamlink
-```
+
+    C:\Users\%username%\AppData\Roaming\streamlink
+
 Then create the `plugins` folder and drop the twitch.py inside of it.
+
+---
 ### Linux:
 #### Automatically
-Run the below command in terminal. 
-```
-INSTALL_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
-```
+Run the below command in a terminal:
+
+    INSTALL_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
+
 #### Manually
 Copy the `twitch.py` file to:
-```
-~/.local/share/streamlink/plugins
-```
+
+    ~/.local/share/streamlink/plugins
+
+---
 ### MacOS:
 #### Automatically
-Run the below command in terminal.
-```
-INSTALL_DIR="${HOME}/Library/Application Support/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
-```
+Run the below command in terminal:
+
+    INSTALL_DIR="${HOME}/Library/Application Support/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
+
 #### Manually
 Copy the `twitch.py` file to:
-```
-${HOME}/Library/Application Support/streamlink/plugins
-```
-### Summary:
+
+    ${HOME}/Library/Application Support/streamlink/plugins
+---
+### Summary
 More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
 
 Once the `twitch.py` file is in the correct location you will need to set the flags based on which proxy you wish to use.
 
 ## Flags
-streamlink-ttvlol adds the `--twitch-proxy-playlist=URL` flag, it can be pointed at any server that supports the TTV.LOL API. It can also be pointed at multiple comma separated servers which will try each server in order until successful. For example `--twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev,https://eu2.luminous.dev`.
+streamlink-ttvlol adds the `--twitch-proxy-playlist=URL` flag, it can be pointed at any server that supports the TTV.LOL API. It can also be pointed at multiple comma separated servers which will try each server in order until successful. 
+
+Example:
+
+    --twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev,https://eu2.luminous.dev
+    
+---
+    
+`--twitch-proxy-playlist-exclude=CHANNELS` can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
+
+Example:
+
+    --twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming
+    
+---
+
 ### TTV.LOL
-```
---twitch-ttvlol
-```
+
+    --twitch-ttvlol
 This is an alias for `--twitch-proxy-playlist=https://api.ttv.lol`. No additional configuration is required.
+
+---
+
 ### luminous-ttv
-```
---twitch-proxy-playlist=http://localhost:9595
-```
+
+    --twitch-proxy-playlist=http://localhost:9595
 If you're running luminous-ttv server on a different computer other than the one you're watching on, you'll need to pass the ```--address 0.0.0.0``` flag when launching luminous. As well as change localhost to the address of the computer the luminous server is running on. **ensure you're running the ```luminous-ttv.exe``` server before you open and while you're watching a stream, or else you will receive a "```Unable to open URL```" error.**
 
 ## streamlink-twitch-gui
