@@ -791,8 +791,8 @@ class Twitch(Plugin):
 
     def _get_hls_streams_ttvlol(self, urls):
         for url in urls:
-            domain = urlparse(url).netloc
-            log.info(f"Using playlist proxy '{domain}'")
+            parsed_url = urlparse(url)
+            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
 
             try:
                 return TwitchHLSStream.parse_variant_playlist(self.session, url)
