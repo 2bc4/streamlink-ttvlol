@@ -816,7 +816,11 @@ class Twitch(Plugin):
         elif self.clip_name:
             return self._get_clips()
         elif self.channel:
-            if self.ttvlol.playlist_proxies and not self.channel in self.ttvlol.excluded_channels:
+            if self.ttvlol.playlist_proxies:
+                if self.channel in self.ttvlol.excluded_channels:
+                    log.info(f"Channel {self.channel} excluded from playlist proxy")
+                    return self._get_hls_streams_live()
+
                 return self._get_hls_streams_live_ttvlol()
             else:
                 return self._get_hls_streams_live()
