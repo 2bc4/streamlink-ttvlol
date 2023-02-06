@@ -615,6 +615,12 @@ class TwitchAPI:
         Proxy playlist request through a server that supports the TTV.LOL API.
 
         Can be multiple comma separated server URLs to be used as fallback.
+
+        Only livestreams will use the playlist proxy, VODs and clips will use upstream behavior.
+
+        When enabled the Twitch GraphQL API will not be called.
+        --twitch-api-header and --twitch-access-token-param will have no effect.
+        It will also not be possible to check for subscriber only streams and reruns will be disabled.
     """,
 )
 @pluginargument(
@@ -622,7 +628,11 @@ class TwitchAPI:
     metavar="CHANNELS",
     type=comma_list,
     help="""
-        Exclude channel(s) from playlist proxy.
+        Exclude specified channel(s) from playlist proxy and fallback to upstream behavior.
+
+        Can be multiple comma separated channel names.
+
+        Useful if you're subscribed to the channel(s) and want to use your OAuth token to avoid ads instead.
     """,
 )
 @pluginargument(
