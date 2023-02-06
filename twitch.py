@@ -821,6 +821,7 @@ class Twitch(Plugin):
                     log.info(f"Channel {self.channel} excluded from playlist proxy")
                     return self._get_hls_streams_live()
 
+                self.options.set("disable-reruns", True)
                 return self._get_hls_streams_live_ttvlol()
             else:
                 return self._get_hls_streams_live()
