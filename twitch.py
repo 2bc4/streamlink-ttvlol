@@ -753,9 +753,6 @@ class Twitch(Plugin):
         return self._get_hls_streams(url, restricted_bitrates)
 
     def _get_hls_streams_live_ttvlol(self):
-        if self._check_for_rerun():
-            return
-
         log.debug(f"Getting live HLS streams for {self.channel}")
         self.session.http.headers.update({
             "referer": "https://player.twitch.tv",
@@ -831,7 +828,6 @@ class Twitch(Plugin):
                     log.info(f"Channel {self.channel} excluded from playlist proxy")
                     return self._get_hls_streams_live()
 
-                self.options.set("disable-reruns", True)
                 return self._get_hls_streams_live_ttvlol()
             else:
                 return self._get_hls_streams_live()
