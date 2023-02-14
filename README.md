@@ -1,7 +1,7 @@
 # streamlink-ttvlol
 ## About
 
-Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API and [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv). This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL and luminous-ttv can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist.
+Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist.
 
 ## Installation
 ***Follow the instructions below for your specific operating system.***
@@ -78,20 +78,9 @@ streamlink-ttvlol adds the following flags:
 
 |Flag                                  |Example                                                                   |Description|
 |:-------------------------------------|:-------------------------------------------------------------------------|:----------|
-|<pre>`--twitch-proxy-playlist`        |<pre>`--twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev`|Proxy playlist request through a server that supports the TTV.LOL API. It can also be pointed at multiple comma separated servers which will try each server in order until successful.
+|<pre>`--twitch-proxy-playlist`        |<pre>`--twitch-proxy-playlist=https://api.ttv.lol`|Proxy playlist request through a server that supports the TTV.LOL API. It can also be pointed at multiple comma separated servers which will try each server in order until successful.
 |<pre>`--twitch-proxy-playlist-exclude`|<pre>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`</pre>   |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
 |<pre>`--twitch-ttvlol`</pre>          |                                                                          |This is a convenience alias for: <pre>`--twitch-proxy-playlist=https://api.ttv.lol`
-
-## luminous-ttv
-Start your luminous server and tell Streamlink to use it.
-
-Example:
-
-```
---twitch-proxy-playlist=http://localhost:9595
-```
-
-If you're running luminous-ttv server on a different computer other than the one you're watching on, you'll need to pass the `--address 0.0.0.0` flag when launching luminous. As well as change localhost to the address of the computer the luminous server is running on. **Ensure you're running the `luminous-ttv.exe` server before you open and while you're watching a stream, or else you will receive a "`Unable to open URL`" error.**
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above flag of your choosing to the "Custom parameters" box on the `Streaming` tab.
