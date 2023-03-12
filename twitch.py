@@ -241,8 +241,14 @@ class TTVLOLService:
 
     def channel(self, channel):
         urls = []
-
         for proxy in self.playlist_proxies:
+
+            #Official Purple Adblock servers
+            #TODO: reduce spaghetti
+            if "jupter.ga" in proxy:
+                urls.append(proxy + f"/channel/{channel}")
+                continue
+
             urls.append(self._create_url(proxy, f"/playlist/{channel}.m3u8"))
 
         return urls

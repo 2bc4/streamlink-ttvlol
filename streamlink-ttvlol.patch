@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 8cb647fa..f074bb66 100644
+index 8cb647fa..df7ac397 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -14,7 +14,7 @@ import sys
@@ -20,7 +20,7 @@ index 8cb647fa..f074bb66 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.times import hours_minutes_seconds
  from streamlink.utils.url import update_qsd
-@@ -208,6 +208,46 @@ class TwitchHLSStream(HLSStream):
+@@ -208,6 +208,52 @@ class TwitchHLSStream(HLSStream):
          self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
  
  
@@ -57,8 +57,14 @@ index 8cb647fa..f074bb66 100644
 +
 +    def channel(self, channel):
 +        urls = []
-+
 +        for proxy in self.playlist_proxies:
++
++            #Official Purple Adblock servers
++            #TODO: reduce spaghetti
++            if "jupter.ga" in proxy:
++                urls.append(proxy + f"/channel/{channel}")
++                continue
++
 +            urls.append(self._create_url(proxy, f"/playlist/{channel}.m3u8"))
 +
 +        return urls
@@ -67,7 +73,7 @@ index 8cb647fa..f074bb66 100644
  class UsherService:
      def __init__(self, session):
          self.session = session
-@@ -568,6 +608,42 @@ class TwitchAPI:
+@@ -568,6 +614,42 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -110,7 +116,7 @@ index 8cb647fa..f074bb66 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -601,6 +677,7 @@ class Twitch(Plugin):
+@@ -601,6 +683,7 @@ class Twitch(Plugin):
  
          self.api = TwitchAPI(session=self.session)
          self.usher = UsherService(session=self.session)
@@ -118,7 +124,7 @@ index 8cb647fa..f074bb66 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -676,6 +753,19 @@ class Twitch(Plugin):
+@@ -676,6 +759,19 @@ class Twitch(Plugin):
  
          return self._get_hls_streams(url, restricted_bitrates)
  
@@ -138,7 +144,7 @@ index 8cb647fa..f074bb66 100644
      def _get_hls_streams_video(self):
          log.debug(f"Getting HLS streams for video ID {self.video_id}")
          sig, token, restricted_bitrates = self._access_token(False, self.video_id)
-@@ -707,6 +797,18 @@ class Twitch(Plugin):
+@@ -707,6 +803,18 @@ class Twitch(Plugin):
  
          return streams
  
@@ -157,7 +163,7 @@ index 8cb647fa..f074bb66 100644
      def _get_clips(self):
          try:
              sig, token, streams = self.api.clips(self.clip_name)
-@@ -722,7 +824,14 @@ class Twitch(Plugin):
+@@ -722,7 +830,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
