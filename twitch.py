@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timedelta
 from random import random
 from typing import List, NamedTuple, Optional
-from urllib.parse import urlparse, urlencode, quote
+from urllib.parse import urlparse, quote
 
 from streamlink.exceptions import NoStreamsError, PluginError
 from streamlink.plugin import Plugin, pluginargument, pluginmatcher
@@ -223,8 +223,7 @@ class TTVLOLService:
         if not isinstance(self.excluded_channels, list):
             self.excluded_channels = [self.excluded_channels]
 
-    def _create_url(self, base, endpoint):
-        url = base + endpoint
+    def _append_url_params(self, url):
         params = {
             "player": "twitchweb",
             "type": "any",
@@ -234,22 +233,22 @@ class TTVLOLService:
             "fast_bread": "true",
         }
 
-        encoded_url = quote(url + '?' + urlencode(params), safe=':/')
-        req = self.session.http.prepare_new_request(url=encoded_url)
+        req = self.session.http.prepare_new_request(url=url, params=params)
 
         return req.url
 
     def channel(self, channel):
         urls = []
+
         for proxy in self.playlist_proxies:
+            url = re.sub(r"\[channel\]", channel, proxy)
 
-            #Official Purple Adblock servers
-            #TODO: reduce spaghetti
-            if "jupter.ga" in proxy:
-                urls.append(proxy + f"/channel/{channel}")
-                continue
+            if url != proxy:
+                url = self._append_url_params(url)
+            else:
+                url = quote(self._append_url_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
 
-            urls.append(self._create_url(proxy, f"/playlist/{channel}.m3u8"))
+            urls.append(url)
 
         return urls
 
@@ -625,7 +624,7 @@ class TwitchAPI:
 
         Only livestreams will use the playlist proxy, VODs and clips will use upstream behavior.
 
-        When enabled the Twitch GraphQL API will not be called.
+        When used the Twitch GraphQL API will not be called.
         --twitch-api-header and --twitch-access-token-param will have no effect.
         It will also not be possible to check for subscriber only streams and reruns will be disabled.
     """,
@@ -807,6 +806,7 @@ class Twitch(Plugin):
         for url in urls:
             parsed_url = urlparse(url)
             log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
+            log.debug(f"Raw playlist proxy URL: {url}")
 
             try:
                 return TwitchHLSStream.parse_variant_playlist(self.session, url)
