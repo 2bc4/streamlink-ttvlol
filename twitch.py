@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timedelta
 from random import random
 from typing import List, NamedTuple, Optional
-from urllib.parse import urlparse, quote
+from urllib.parse import urlparse, urlencode, quote
 
 from streamlink.exceptions import NoStreamsError, PluginError
 from streamlink.plugin import Plugin, pluginargument, pluginmatcher
@@ -223,7 +223,8 @@ class TTVLOLService:
         if not isinstance(self.excluded_channels, list):
             self.excluded_channels = [self.excluded_channels]
 
-    def _append_url_params(self, url):
+    def _create_url(self, base, endpoint):
+        url = base + endpoint
         params = {
             "player": "twitchweb",
             "type": "any",
@@ -233,23 +234,22 @@ class TTVLOLService:
             "fast_bread": "true",
         }
 
-        req = self.session.http.prepare_new_request(url=url, params=params)
+        encoded_url = quote(url + '?' + urlencode(params), safe=':/')
+        req = self.session.http.prepare_new_request(url=encoded_url)
 
         return req.url
 
     def channel(self, channel):
         urls = []
-
         for proxy in self.playlist_proxies:
-            formatted_url = proxy.format(channel=channel)
 
-            url = ""
-            if formatted_url != proxy:
-                url = self._append_url_params(formatted_url)
-            else:
-                url = quote(self._append_url_params(proxy + f"/playlist/{channel}.m3u8"), safe=":/")
+            #Official Purple Adblock servers
+            #TODO: reduce spaghetti
+            if "jupter.ga" in proxy:
+                urls.append(proxy + f"/channel/{channel}")
+                continue
 
-            urls.append(url)
+            urls.append(self._create_url(proxy, f"/playlist/{channel}.m3u8"))
 
         return urls
 
