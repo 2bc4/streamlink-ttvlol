@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 8cb647fa..630eaff3 100644
+index 8cb647fa..56317b9b 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -14,7 +14,7 @@ import sys
@@ -7,7 +7,7 @@ index 8cb647fa..630eaff3 100644
  from random import random
  from typing import List, NamedTuple, Optional
 -from urllib.parse import urlparse
-+from urllib.parse import urlparse, quote
++from urllib.parse import quote, urlparse
  
  from streamlink.exceptions import NoStreamsError, PluginError
  from streamlink.plugin import Plugin, pluginargument, pluginmatcher
@@ -16,7 +16,7 @@ index 8cb647fa..630eaff3 100644
  from streamlink.stream.hls_playlist import M3U8, ByteRange, DateRange, ExtInf, Key, M3U8Parser, Map, load as load_hls_playlist
  from streamlink.stream.http import HTTPStream
 -from streamlink.utils.args import keyvalue
-+from streamlink.utils.args import keyvalue, comma_list
++from streamlink.utils.args import comma_list, keyvalue
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.times import hours_minutes_seconds
  from streamlink.utils.url import update_qsd
