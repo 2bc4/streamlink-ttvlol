@@ -208,46 +208,6 @@ class TwitchHLSStream(HLSStream):
         self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
 
 
-class TTVLOLService:
-    def __init__(self, session):
-        self.session = session
-        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
-        self.excluded_channels = self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or []
-        self.excluded_channels = map(str.lower, self.excluded_channels)
-
-        if self.session.get_plugin_option("twitch", "ttvlol"):
-            self.playlist_proxies = ["https://api.ttv.lol"]
-
-    def _append_url_params(self, url):
-        params = {
-            "player": "twitchweb",
-            "type": "any",
-            "allow_source": "true",
-            "allow_audio_only": "true",
-            "allow_spectre": "false",
-            "fast_bread": "true",
-        }
-
-        req = self.session.http.prepare_new_request(url=url, params=params)
-
-        return req.url
-
-    def channel(self, channel):
-        urls = []
-
-        for proxy in self.playlist_proxies:
-            url = re.sub(r"\[channel\]", channel, proxy)
-
-            if url != proxy:
-                url = self._append_url_params(url)
-            else:
-                url = quote(self._append_url_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
-
-            urls.append(url)
-
-        return urls
-
-
 class UsherService:
     def __init__(self, session):
         self.session = session
@@ -288,6 +248,45 @@ class UsherService:
 
     def video(self, video_id, **extra_params):
         return self._create_url(f"/vod/{video_id}", **extra_params)
+
+
+class TTVLOLService:
+    def __init__(self, session):
+        self.session = session
+        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
+        self.excluded_channels = map(str.lower, self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or [])
+
+        if self.session.get_plugin_option("twitch", "ttvlol"):
+            self.playlist_proxies = ["https://api.ttv.lol"]
+
+    def _append_query_params(self, url):
+        params = {
+            "player": "twitchweb",
+            "type": "any",
+            "allow_source": "true",
+            "allow_audio_only": "true",
+            "allow_spectre": "false",
+            "fast_bread": "true",
+        }
+
+        req = self.session.http.prepare_new_request(url=url, params=params)
+
+        return req.url
+
+    def channel(self, channel):
+        urls = []
+
+        for proxy in self.playlist_proxies:
+            url = re.sub(r"\[channel\]", channel, proxy)
+
+            if url != proxy:
+                url = self._append_query_params(url)
+            else:
+                url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
+
+            urls.append(url)
+
+        return urls
 
 
 class TwitchAPI:
@@ -760,11 +759,21 @@ class Twitch(Plugin):
             "origin": "https://player.twitch.tv",
             "X-Donate-To": "https://ttv.lol/donate",
         })
-        urls = self.ttvlol.channel(self.channel)
-        streams = self._get_hls_streams_ttvlol(urls)
 
-        self.session.http.headers.pop("X-Donate-To")
-        return streams
+        for url in self.ttvlol.channel(self.channel):
+            parsed_url = urlparse(url)
+            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
+            log.debug(f"Raw playlist proxy URL: '{url}'")
+
+            try:
+                streams = TwitchHLSStream.parse_variant_playlist(self.session, url)
+
+                del self.session.http.headers["X-Donate-To"]
+                return streams
+            except OSError as err:
+                log.error(err)
+
+        raise PluginError("No playlist proxies available.")
 
     def _get_hls_streams_video(self):
         log.debug(f"Getting HLS streams for video ID {self.video_id}")
@@ -796,19 +805,6 @@ class Twitch(Plugin):
                 log.warning(f"The quality '{name}' is not available since it requires a subscription.")
 
         return streams
-
-    def _get_hls_streams_ttvlol(self, urls):
-        for url in urls:
-            parsed_url = urlparse(url)
-            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
-            log.debug(f"Raw playlist proxy URL: {url}")
-
-            try:
-                return TwitchHLSStream.parse_variant_playlist(self.session, url)
-            except OSError as err:
-                log.warning(err)
-
-        raise PluginError("No playlist proxies available.")
 
     def _get_clips(self):
         try:
