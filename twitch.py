@@ -211,17 +211,12 @@ class TwitchHLSStream(HLSStream):
 class TTVLOLService:
     def __init__(self, session):
         self.session = session
-        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist")
-        self.excluded_channels = self.session.get_plugin_option("twitch", "proxy-playlist-exclude")
+        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
+        self.excluded_channels = self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or []
+        self.excluded_channels = map(str.lower, self.excluded_channels)
 
         if self.session.get_plugin_option("twitch", "ttvlol"):
             self.playlist_proxies = ["https://api.ttv.lol"]
-
-        if isinstance(self.playlist_proxies, str):
-            self.playlist_proxies = [self.playlist_proxies]
-
-        if not isinstance(self.excluded_channels, list):
-            self.excluded_channels = [self.excluded_channels]
 
     def _append_url_params(self, url):
         params = {

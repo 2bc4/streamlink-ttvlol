@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 8cb647fa..56317b9b 100644
+index 8cb647fa..18fd3971 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -14,7 +14,7 @@ import sys
@@ -20,24 +20,19 @@ index 8cb647fa..56317b9b 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.times import hours_minutes_seconds
  from streamlink.utils.url import update_qsd
-@@ -208,6 +208,51 @@ class TwitchHLSStream(HLSStream):
+@@ -208,6 +208,46 @@ class TwitchHLSStream(HLSStream):
          self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
  
  
 +class TTVLOLService:
 +    def __init__(self, session):
 +        self.session = session
-+        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist")
-+        self.excluded_channels = self.session.get_plugin_option("twitch", "proxy-playlist-exclude")
++        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
++        self.excluded_channels = self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or []
++        self.excluded_channels = map(str.lower, self.excluded_channels)
 +
 +        if self.session.get_plugin_option("twitch", "ttvlol"):
 +            self.playlist_proxies = ["https://api.ttv.lol"]
-+
-+        if isinstance(self.playlist_proxies, str):
-+            self.playlist_proxies = [self.playlist_proxies]
-+
-+        if not isinstance(self.excluded_channels, list):
-+            self.excluded_channels = [self.excluded_channels]
 +
 +    def _append_url_params(self, url):
 +        params = {
@@ -72,7 +67,7 @@ index 8cb647fa..56317b9b 100644
  class UsherService:
      def __init__(self, session):
          self.session = session
-@@ -568,6 +613,42 @@ class TwitchAPI:
+@@ -568,6 +608,42 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -115,7 +110,7 @@ index 8cb647fa..56317b9b 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -601,6 +682,7 @@ class Twitch(Plugin):
+@@ -601,6 +677,7 @@ class Twitch(Plugin):
  
          self.api = TwitchAPI(session=self.session)
          self.usher = UsherService(session=self.session)
@@ -123,7 +118,7 @@ index 8cb647fa..56317b9b 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -676,6 +758,19 @@ class Twitch(Plugin):
+@@ -676,6 +753,19 @@ class Twitch(Plugin):
  
          return self._get_hls_streams(url, restricted_bitrates)
  
@@ -143,7 +138,7 @@ index 8cb647fa..56317b9b 100644
      def _get_hls_streams_video(self):
          log.debug(f"Getting HLS streams for video ID {self.video_id}")
          sig, token, restricted_bitrates = self._access_token(False, self.video_id)
-@@ -707,6 +802,19 @@ class Twitch(Plugin):
+@@ -707,6 +797,19 @@ class Twitch(Plugin):
  
          return streams
  
@@ -163,7 +158,7 @@ index 8cb647fa..56317b9b 100644
      def _get_clips(self):
          try:
              sig, token, streams = self.api.clips(self.clip_name)
-@@ -722,7 +830,14 @@ class Twitch(Plugin):
+@@ -722,7 +825,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
