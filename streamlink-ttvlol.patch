@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 8cb647fa..50dc5f68 100644
+index 8cb647fa..eb5e2a33 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -14,7 +14,7 @@ import sys
@@ -20,7 +20,7 @@ index 8cb647fa..50dc5f68 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.times import hours_minutes_seconds
  from streamlink.utils.url import update_qsd
-@@ -250,6 +250,45 @@ class UsherService:
+@@ -250,6 +250,46 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -52,13 +52,14 @@ index 8cb647fa..50dc5f68 100644
 +
 +        for proxy in self.playlist_proxies:
 +            url = re.sub(r"\[channel\]", channel, proxy)
++            parsed_url = urlparse(url)
 +
-+            if url != proxy:
-+                url = self._append_query_params(url)
-+            else:
++            if url == proxy:
 +                url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
++            elif not parsed_url.query:
++                url = self._append_query_params(url)
 +
-+            urls.append(url)
++            urls.append((url, parsed_url))
 +
 +        return urls
 +
@@ -66,7 +67,7 @@ index 8cb647fa..50dc5f68 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -568,6 +607,42 @@ class TwitchAPI:
+@@ -568,6 +608,42 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -109,7 +110,7 @@ index 8cb647fa..50dc5f68 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -601,6 +676,7 @@ class Twitch(Plugin):
+@@ -601,6 +677,7 @@ class Twitch(Plugin):
  
          self.api = TwitchAPI(session=self.session)
          self.usher = UsherService(session=self.session)
@@ -117,7 +118,7 @@ index 8cb647fa..50dc5f68 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -676,6 +752,29 @@ class Twitch(Plugin):
+@@ -676,6 +753,28 @@ class Twitch(Plugin):
  
          return self._get_hls_streams(url, restricted_bitrates)
  
@@ -129,8 +130,7 @@ index 8cb647fa..50dc5f68 100644
 +            "X-Donate-To": "https://ttv.lol/donate",
 +        })
 +
-+        for url in self.ttvlol.channel(self.channel):
-+            parsed_url = urlparse(url)
++        for (url, parsed_url) in self.ttvlol.channel(self.channel):
 +            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
 +            log.debug(f"Raw playlist proxy URL: '{url}'")
 +

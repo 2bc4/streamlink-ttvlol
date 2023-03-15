@@ -278,13 +278,14 @@ class TTVLOLService:
 
         for proxy in self.playlist_proxies:
             url = re.sub(r"\[channel\]", channel, proxy)
+            parsed_url = urlparse(url)
 
-            if url != proxy:
-                url = self._append_query_params(url)
-            else:
+            if url == proxy:
                 url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
+            elif not parsed_url.query:
+                url = self._append_query_params(url)
 
-            urls.append(url)
+            urls.append((url, parsed_url))
 
         return urls
 
@@ -760,8 +761,7 @@ class Twitch(Plugin):
             "X-Donate-To": "https://ttv.lol/donate",
         })
 
-        for url in self.ttvlol.channel(self.channel):
-            parsed_url = urlparse(url)
+        for (url, parsed_url) in self.ttvlol.channel(self.channel):
             log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
             log.debug(f"Raw playlist proxy URL: '{url}'")
 
