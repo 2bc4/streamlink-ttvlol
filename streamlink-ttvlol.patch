@@ -1,8 +1,14 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 8cb647fa..eb5e2a33 100644
+index 8cb647fa..0bb81be8 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
-@@ -14,7 +14,7 @@ import sys
+@@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
+ 
+ import argparse
+ import logging
++import os
+ import re
+ import sys
  from datetime import datetime, timedelta
  from random import random
  from typing import List, NamedTuple, Optional
@@ -11,7 +17,7 @@ index 8cb647fa..eb5e2a33 100644
  
  from streamlink.exceptions import NoStreamsError, PluginError
  from streamlink.plugin import Plugin, pluginargument, pluginmatcher
-@@ -22,7 +22,7 @@ from streamlink.plugin.api import validate
+@@ -22,7 +23,7 @@ from streamlink.plugin.api import validate
  from streamlink.stream.hls import HLSStream, HLSStreamReader, HLSStreamWorker, HLSStreamWriter
  from streamlink.stream.hls_playlist import M3U8, ByteRange, DateRange, ExtInf, Key, M3U8Parser, Map, load as load_hls_playlist
  from streamlink.stream.http import HTTPStream
@@ -20,7 +26,26 @@ index 8cb647fa..eb5e2a33 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.times import hours_minutes_seconds
  from streamlink.utils.url import update_qsd
-@@ -250,6 +250,46 @@ class UsherService:
+@@ -177,6 +178,10 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
+     stream: "TwitchHLSStream"
+ 
+     def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
++        if self.stream.reexec_on_ad and sequence.segment.ad:
++            log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
++            os.execv(sys.argv[0], sys.argv)
++
+         return self.stream.disable_ads and sequence.segment.ad
+ 
+ 
+@@ -206,6 +211,7 @@ class TwitchHLSStream(HLSStream):
+         super().__init__(*args, **kwargs)
+         self.disable_ads = self.session.get_plugin_option("twitch", "disable-ads")
+         self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
++        self.reexec_on_ad = self.session.get_plugin_option("twitch", "reexec-on-ad")
+ 
+ 
+ class UsherService:
+@@ -250,6 +256,46 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -67,7 +92,7 @@ index 8cb647fa..eb5e2a33 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -568,6 +608,42 @@ class TwitchAPI:
+@@ -568,6 +614,49 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -107,10 +132,17 @@ index 8cb647fa..eb5e2a33 100644
 +        Overrides --twitch-proxy-playlist
 +    """,
 +)
++@pluginargument(
++    "reexec-on-ad",
++    action="store_true",
++    help="""
++        Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
++    """,
++)
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -601,6 +677,7 @@ class Twitch(Plugin):
+@@ -601,6 +690,7 @@ class Twitch(Plugin):
  
          self.api = TwitchAPI(session=self.session)
          self.usher = UsherService(session=self.session)
@@ -118,7 +150,7 @@ index 8cb647fa..eb5e2a33 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -676,6 +753,28 @@ class Twitch(Plugin):
+@@ -676,6 +766,28 @@ class Twitch(Plugin):
  
          return self._get_hls_streams(url, restricted_bitrates)
  
@@ -147,7 +179,7 @@ index 8cb647fa..eb5e2a33 100644
      def _get_hls_streams_video(self):
          log.debug(f"Getting HLS streams for video ID {self.video_id}")
          sig, token, restricted_bitrates = self._access_token(False, self.video_id)
-@@ -722,7 +821,14 @@ class Twitch(Plugin):
+@@ -722,7 +834,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:

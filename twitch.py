@@ -9,6 +9,7 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
 
 import argparse
 import logging
+import os
 import re
 import sys
 from datetime import datetime, timedelta
@@ -177,6 +178,10 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
     stream: "TwitchHLSStream"
 
     def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
+        if self.stream.reexec_on_ad and sequence.segment.ad:
+            log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
+            os.execv(sys.argv[0], sys.argv)
+
         return self.stream.disable_ads and sequence.segment.ad
 
 
@@ -206,6 +211,7 @@ class TwitchHLSStream(HLSStream):
         super().__init__(*args, **kwargs)
         self.disable_ads = self.session.get_plugin_option("twitch", "disable-ads")
         self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
+        self.reexec_on_ad = self.session.get_plugin_option("twitch", "reexec-on-ad")
 
 
 class UsherService:
@@ -642,6 +648,13 @@ class TwitchAPI:
     help="""
         Alias for --twitch-proxy-playlist=https://api.ttv.lol
         Overrides --twitch-proxy-playlist
+    """,
+)
+@pluginargument(
+    "reexec-on-ad",
+    action="store_true",
+    help="""
+        Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
     """,
 )
 class Twitch(Plugin):
