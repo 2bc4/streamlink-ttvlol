@@ -1,7 +1,7 @@
 # streamlink-ttvlol
 ## About
 
-Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist.
+Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist (or try the experimental flag `--twitch-reexec-on-ad` to do this automatically).
 
 ## Installation
 ***Follow the instructions below for your specific operating system.***
@@ -10,9 +10,9 @@ Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/
 
 If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). 
 
-After installation you will need to point Streamlink at a playlist proxy server with [flags](#Flags).
-
 More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
+
+After installation you will need to point Streamlink at a playlist proxy server with [flags](#Flags).
 
 ## Windows
 ### Automatically
@@ -76,11 +76,12 @@ ${HOME}/Library/Application Support/streamlink/plugins
 ## Flags
 streamlink-ttvlol adds the following flags:
 
-|Flag                                  |Example                                                                   |Description|
-|:-------------------------------------|:-------------------------------------------------------------------------|:----------|
-|<pre>`--twitch-proxy-playlist`        |<pre>`--twitch-proxy-playlist=https://api.ttv.lol`|Proxy playlist request through a server that supports the TTV.LOL API. It can also be pointed at multiple comma separated servers which will try each server in order until successful.
-|<pre>`--twitch-proxy-playlist-exclude`|<pre>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`</pre>   |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
-|<pre>`--twitch-ttvlol`</pre>          |                                                                          |This is a convenience alias for: <pre>`--twitch-proxy-playlist=https://api.ttv.lol`
+|Flag                                  |Example                                                                   |Description    |
+|:-------------------------------------|:-------------------------------------------------------------------------|:--------------|
+|<pre>`--twitch-proxy-playlist`        |<pre>`--twitch-proxy-playlist=https://api.ttv.lol,https://eu1.jupter.ga/channel/[channel]`|Proxy playlist request through a server that supports the TTV.LOL API (or a server that doesn't with a custom URL, see [here](https://github.com/2bc4/streamlink-ttvlol/releases/tag/5.3.0-20230313)). It can also be pointed at multiple comma separated servers which will try each server in order until successful.
+|<pre>`--twitch-proxy-playlist-exclude`|<pre>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`                         |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
+|<pre>`--twitch-ttvlol`                |<pre>`--twitch-ttvlol`                                                                    |This is a convenience alias for: <pre>`--twitch-proxy-playlist=https://api.ttv.lol`
+|<pre>`--twitch-reexec-on-ad`          |<pre>`--twitch-reexec-on-ad`                                                              |*(Experimental)* Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above flag of your choosing to the "Custom parameters" box on the `Streaming` tab.
