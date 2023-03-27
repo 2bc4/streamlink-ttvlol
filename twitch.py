@@ -180,7 +180,6 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
     def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
         if self.stream.reexec_on_ad and sequence.segment.ad:
             log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
-
             if sys.platform == "win32":
                 # Python Win32 bug https://bugs.python.org/issue436259
 
@@ -269,6 +268,7 @@ class TTVLOLService:
         self.session = self.plugin.session
         self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
         self.excluded_channels = map(str.lower, self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or [])
+        self.fallback_on_fail = self.session.get_plugin_option("twitch", "proxy-playlist-fallback")
 
         if self.session.get_plugin_option("twitch", "ttvlol"):
             self.playlist_proxies = ["https://api.ttv.lol"]
@@ -282,7 +282,6 @@ class TTVLOLService:
             "allow_spectre": "false",
             "fast_bread": "true",
         }
-
         req = self.session.http.prepare_new_request(url=url, params=params)
 
         return req.url
@@ -297,7 +296,6 @@ class TTVLOLService:
             "referer": "https://player.twitch.tv",
             "origin": "https://player.twitch.tv",
         })
-
         for proxy in self.playlist_proxies:
             url = re.sub(r"\[channel\]", channel, proxy)
             parsed_url = urlparse(url)
@@ -310,13 +308,16 @@ class TTVLOLService:
 
             log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
             log.debug(f"Raw playlist proxy URL: '{url}'")
-
             try:
                 return TwitchHLSStream.parse_variant_playlist(self.session, url)
             except OSError as err:
                 log.error(err)
             finally:
                 self.session.http.headers.pop("X-Donate-To", None)
+
+        if self.fallback_on_fail:
+            log.info("No playlist proxies available, falling back to Twitch servers")
+            return self.plugin._get_hls_streams_live()
 
         raise NoStreamsError
 
@@ -641,7 +642,7 @@ class TwitchAPI:
 )
 @pluginargument(
     "proxy-playlist",
-    metavar="URL",
+    metavar="URLS",
     type=comma_list,
     help="""
         Proxy playlist request through a server that supports the TTV.LOL API.
@@ -665,6 +666,13 @@ class TwitchAPI:
         Can be multiple comma separated channel names.
 
         Useful if you're subscribed to the channel(s) and want to use your OAuth token to avoid ads instead.
+    """,
+)
+@pluginargument(
+    "proxy-playlist-fallback",
+    action="store_true",
+    help="""
+        Fallback to Twitch servers if all requests to playlist proxies fail.
     """,
 )
 @pluginargument(
