@@ -292,7 +292,7 @@ class TTVLOLService:
             log.info(f"Channel {channel} excluded from playlist proxy")
             return self.plugin._get_hls_streams_live()
 
-        log.debug(f"Getting live HLS streams for {self.channel}")
+        log.debug(f"Getting live HLS streams for {channel}")
         self.session.http.headers.update({
             "referer": "https://player.twitch.tv",
             "origin": "https://player.twitch.tv",
