@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index a3cbbb18..969808d6 100644
+index a3cbbb18..82ff3a4e 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -26,13 +26,12 @@ index a3cbbb18..969808d6 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.times import hours_minutes_seconds
  from streamlink.utils.url import update_qsd
-@@ -177,6 +178,17 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
+@@ -177,6 +178,16 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
      stream: "TwitchHLSStream"
  
      def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
 +        if self.stream.reexec_on_ad and sequence.segment.ad:
 +            log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
-+
 +            if sys.platform == "win32":
 +                # Python Win32 bug https://bugs.python.org/issue436259
 +
@@ -44,7 +43,7 @@ index a3cbbb18..969808d6 100644
          return self.stream.disable_ads and sequence.segment.ad
  
  
-@@ -206,6 +218,7 @@ class TwitchHLSStream(HLSStream):
+@@ -206,6 +217,7 @@ class TwitchHLSStream(HLSStream):
          super().__init__(*args, **kwargs)
          self.disable_ads = self.session.get_plugin_option("twitch", "disable-ads")
          self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
@@ -52,7 +51,7 @@ index a3cbbb18..969808d6 100644
  
  
  class UsherService:
-@@ -250,6 +263,64 @@ class UsherService:
+@@ -250,6 +262,66 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -62,6 +61,7 @@ index a3cbbb18..969808d6 100644
 +        self.session = self.plugin.session
 +        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
 +        self.excluded_channels = map(str.lower, self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or [])
++        self.fallback_on_fail = self.session.get_plugin_option("twitch", "proxy-playlist-fallback")
 +
 +        if self.session.get_plugin_option("twitch", "ttvlol"):
 +            self.playlist_proxies = ["https://api.ttv.lol"]
@@ -75,7 +75,6 @@ index a3cbbb18..969808d6 100644
 +            "allow_spectre": "false",
 +            "fast_bread": "true",
 +        }
-+
 +        req = self.session.http.prepare_new_request(url=url, params=params)
 +
 +        return req.url
@@ -90,7 +89,6 @@ index a3cbbb18..969808d6 100644
 +            "referer": "https://player.twitch.tv",
 +            "origin": "https://player.twitch.tv",
 +        })
-+
 +        for proxy in self.playlist_proxies:
 +            url = re.sub(r"\[channel\]", channel, proxy)
 +            parsed_url = urlparse(url)
@@ -103,7 +101,6 @@ index a3cbbb18..969808d6 100644
 +
 +            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
 +            log.debug(f"Raw playlist proxy URL: '{url}'")
-+
 +            try:
 +                return TwitchHLSStream.parse_variant_playlist(self.session, url)
 +            except OSError as err:
@@ -111,19 +108,23 @@ index a3cbbb18..969808d6 100644
 +            finally:
 +                self.session.http.headers.pop("X-Donate-To", None)
 +
++        if self.fallback_on_fail:
++            log.info("No playlist proxies available, falling back to Twitch servers")
++            return self.plugin._get_hls_streams_live()
++
 +        raise NoStreamsError
 +
 +
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -568,6 +639,49 @@ class TwitchAPI:
+@@ -568,6 +640,56 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
 +@pluginargument(
 +    "proxy-playlist",
-+    metavar="URL",
++    metavar="URLS",
 +    type=comma_list,
 +    help="""
 +        Proxy playlist request through a server that supports the TTV.LOL API.
@@ -150,6 +151,13 @@ index a3cbbb18..969808d6 100644
 +    """,
 +)
 +@pluginargument(
++    "proxy-playlist-fallback",
++    action="store_true",
++    help="""
++        Fallback to Twitch servers if all requests to playlist proxies fail.
++    """,
++)
++@pluginargument(
 +    "ttvlol",
 +    action="store_true",
 +    help="""
@@ -167,7 +175,7 @@ index a3cbbb18..969808d6 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -586,6 +700,9 @@ class Twitch(Plugin):
+@@ -586,6 +708,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -177,7 +185,7 @@ index a3cbbb18..969808d6 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -601,6 +718,7 @@ class Twitch(Plugin):
+@@ -601,6 +726,7 @@ class Twitch(Plugin):
  
          self.api = TwitchAPI(session=self.session)
          self.usher = UsherService(session=self.session)
@@ -185,7 +193,7 @@ index a3cbbb18..969808d6 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -722,7 +840,10 @@ class Twitch(Plugin):
+@@ -722,7 +848,10 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
