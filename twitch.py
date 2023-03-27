@@ -312,14 +312,13 @@ class TTVLOLService:
             log.debug(f"Raw playlist proxy URL: '{url}'")
 
             try:
-                streams = TwitchHLSStream.parse_variant_playlist(self.session, url)
-
-                self.session.http.headers.pop("X-Donate-To", None)
-                return streams
+                return TwitchHLSStream.parse_variant_playlist(self.session, url)
             except OSError as err:
                 log.error(err)
+            finally:
+                self.session.http.headers.pop("X-Donate-To", None)
 
-        raise PluginError("No playlist proxies available.")
+        raise NoStreamsError
 
 
 class TwitchAPI:
