@@ -296,7 +296,6 @@ class TTVLOLService:
         self.session.http.headers.update({
             "referer": "https://player.twitch.tv",
             "origin": "https://player.twitch.tv",
-            "X-Donate-To": "https://ttv.lol/donate",
         })
 
         for proxy in self.playlist_proxies:
@@ -305,6 +304,7 @@ class TTVLOLService:
 
             if url == proxy:
                 url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
+                self.session.http.headers["X-Donate-To"] = "https://ttv.lol/donate"
             elif not parsed_url.query:
                 url = self._append_query_params(url)
 
@@ -314,7 +314,7 @@ class TTVLOLService:
             try:
                 streams = TwitchHLSStream.parse_variant_playlist(self.session, url)
 
-                del self.session.http.headers["X-Donate-To"]
+                self.session.http.headers.pop("X-Donate-To", None)
                 return streams
             except OSError as err:
                 log.error(err)
