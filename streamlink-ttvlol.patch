@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 8cb647fa..ed3af042 100644
+index 8cb647fa..58cc7df2 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -85,7 +85,7 @@ index 8cb647fa..ed3af042 100644
 +            log.info(f"Channel {channel} excluded from playlist proxy")
 +            return self.plugin._get_hls_streams_live()
 +
-+        log.debug(f"Getting live HLS streams for {self.channel}")
++        log.debug(f"Getting live HLS streams for {channel}")
 +        self.session.http.headers.update({
 +            "referer": "https://player.twitch.tv",
 +            "origin": "https://player.twitch.tv",
