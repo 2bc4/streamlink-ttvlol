@@ -264,9 +264,9 @@ class UsherService:
 
 
 class TTVLOLService:
-    def __init__(self, session, plugin):
-        self.session = session
+    def __init__(self, plugin):
         self.plugin = plugin
+        self.session = self.plugin.session
         self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
         self.excluded_channels = map(str.lower, self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or [])
 
@@ -719,7 +719,7 @@ class Twitch(Plugin):
 
         self.api = TwitchAPI(session=self.session)
         self.usher = UsherService(session=self.session)
-        self.ttvlol = TTVLOLService(session=self.session, plugin=self)
+        self.ttvlol = TTVLOLService(plugin=self)
 
         def method_factory(parent_method):
             def inner():
