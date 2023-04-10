@@ -8,7 +8,7 @@ Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/
 
 [Windows](#windows), [Linux](#linux), [MacOS](#macos).
 
-If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). 
+If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
 
 More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
 
@@ -17,7 +17,7 @@ After installation you will need to point Streamlink at a playlist proxy server 
 ## Windows
 ### Automatically
 
-Copy the command below and paste it into powershell. ***Do not run powershell as admin.*** 
+Copy the command below and paste it into powershell. ***Do not run powershell as admin.***
 
 If you don't know how to open powershell. Press windows key + r and type ```powershell``` into the box and press enter. Copy the contents of the box below and then right click in the powershell window and press enter:
 
@@ -82,7 +82,7 @@ streamlink-ttvlol adds the following flags:
 |<pre>`--twitch-proxy-playlist-exclude` |<pre>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`                         |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
 |<pre>`--twitch-proxy-playlist-fallback`|<pre>`--twitch-proxy-playlist-fallback`                                                   |Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
 |<pre>`--twitch-ttvlol`                 |<pre>`--twitch-ttvlol`                                                                    |This is a convenience alias for: <pre>`--twitch-proxy-playlist=https://api.ttv.lol`
-|<pre>`--twitch-reexec-on-ad`           |<pre>`--twitch-reexec-on-ad`                                                              |*(Experimental)* Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
+|<pre>`--twitch-reexec-on-ad`           |<pre>`--twitch-reexec-on-ad`                                                              |*(Experimental)* Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment. When saving the stream to a file (e.g, `-o`), a counter is added to the output file to avoid rewriting previous segments.
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above flag of your choosing to the "Custom parameters" box on the `Streaming` tab.

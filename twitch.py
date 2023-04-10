@@ -177,16 +177,30 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
     reader: "TwitchHLSStreamReader"
     stream: "TwitchHLSStream"
 
+    def __init__(self, *args, **kwargs) -> None:
+        self._reexec_counter = 0
+        super().__init__(*args, **kwargs)
+
     def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
         if self.stream.reexec_on_ad and sequence.segment.ad:
             log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
+            self._reexec_counter += 1
+
+            args = sys.argv[:]
+            for output_flag in ("-o", "--output", "-r" ,"--record", "-R", "--record-and-pipe"):
+                if output_flag in args:
+                    flag_idx = args.index(output_flag)
+                    if flag_idx + 1 < len(args):
+                        stem, ext = os.path.splitext(args[flag_idx + 1])
+                        args[flag_idx + 1] = f"{stem}-{self._reexec_counter}{ext}"
+
             if sys.platform == "win32":
                 # Python Win32 bug https://bugs.python.org/issue436259
 
                 from subprocess import list2cmdline
-                os.execl(sys.executable, list2cmdline([sys.executable] + sys.argv))
+                os.execl(sys.executable, list2cmdline([sys.executable] + args))
             else:
-                os.execv(sys.argv[0], sys.argv)
+                os.execv(sys.argv[0], args)
 
         return self.stream.disable_ads and sequence.segment.ad
 
