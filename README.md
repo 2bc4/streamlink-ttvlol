@@ -1,3 +1,5 @@
+### :warning: Twitch implemented an integrity check on the access token endpoint which broke all playlist proxies. This project is useless until a workaround is implemented in them which may or may not be possible.
+
 # streamlink-ttvlol
 ## About
 
