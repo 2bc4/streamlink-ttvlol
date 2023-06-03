@@ -287,6 +287,9 @@ class TTVLOLService:
         return req.url
 
     def streams(self, channel):
+        if not self.playlist_proxies:
+            return self.plugin._get_hls_streams_live()
+
         if channel in self.excluded_channels:
             log.info(f"Channel {channel} excluded from playlist proxy")
             return self.plugin._get_hls_streams_live()
@@ -852,10 +855,7 @@ class Twitch(Plugin):
         elif self.clip_name:
             return self._get_clips()
         elif self.channel:
-            if self.ttvlol.playlist_proxies:
-                return self.ttvlol.streams(self.channel)
-            else:
-                return self._get_hls_streams_live()
+            return self.ttvlol.streams(self.channel)
 
 
 __plugin__ = Twitch

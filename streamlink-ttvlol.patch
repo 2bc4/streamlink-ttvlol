@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 923887e6..b5b60ca2 100644
+index 923887e6..228884a4 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -51,7 +51,7 @@ index 923887e6..b5b60ca2 100644
  
  
  class UsherService:
-@@ -250,6 +262,66 @@ class UsherService:
+@@ -250,6 +262,69 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -80,6 +80,9 @@ index 923887e6..b5b60ca2 100644
 +        return req.url
 +
 +    def streams(self, channel):
++        if not self.playlist_proxies:
++            return self.plugin._get_hls_streams_live()
++
 +        if channel in self.excluded_channels:
 +            log.info(f"Channel {channel} excluded from playlist proxy")
 +            return self.plugin._get_hls_streams_live()
@@ -118,7 +121,7 @@ index 923887e6..b5b60ca2 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -573,6 +645,56 @@ class TwitchAPI:
+@@ -573,6 +648,56 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -175,7 +178,7 @@ index 923887e6..b5b60ca2 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -591,6 +713,8 @@ class Twitch(Plugin):
+@@ -591,6 +716,8 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -184,7 +187,7 @@ index 923887e6..b5b60ca2 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -606,6 +730,7 @@ class Twitch(Plugin):
+@@ -606,6 +733,7 @@ class Twitch(Plugin):
  
          self.api = TwitchAPI(session=self.session)
          self.usher = UsherService(session=self.session)
@@ -192,15 +195,12 @@ index 923887e6..b5b60ca2 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -727,7 +852,10 @@ class Twitch(Plugin):
+@@ -727,7 +855,7 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
 -            return self._get_hls_streams_live()
-+            if self.ttvlol.playlist_proxies:
-+                return self.ttvlol.streams(self.channel)
-+            else:
-+                return self._get_hls_streams_live()
++            return self.ttvlol.streams(self.channel)
  
  
  __plugin__ = Twitch
