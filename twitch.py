@@ -262,7 +262,7 @@ class UsherService:
         return self._create_url(f"/vod/{video_id}", **extra_params)
 
 
-class TTVLOLService:
+class PlaylistProxyService:
     def __init__(self, plugin):
         self.plugin = plugin
         self.session = self.plugin.session
@@ -733,7 +733,7 @@ class Twitch(Plugin):
 
         self.api = TwitchAPI(session=self.session)
         self.usher = UsherService(session=self.session)
-        self.ttvlol = TTVLOLService(plugin=self)
+        self.playlist_proxy = PlaylistProxyService(plugin=self)
 
         def method_factory(parent_method):
             def inner():
@@ -855,7 +855,7 @@ class Twitch(Plugin):
         elif self.clip_name:
             return self._get_clips()
         elif self.channel:
-            return self.ttvlol.streams(self.channel)
+            return self.playlist_proxy.streams(self.channel)
 
 
 __plugin__ = Twitch
