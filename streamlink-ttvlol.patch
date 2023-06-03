@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 923887e6..2d4c9386 100644
+index 923887e6..062b93db 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -98,7 +98,7 @@ index 923887e6..2d4c9386 100644
 +
 +            if url == proxy:
 +                url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
-+                self.session.http.headers["X-Donate-To"] = "https://ttv.lol/donate"
++                self.session.http.headers["x-donate-to"] = "https://ttv.lol/donate"
 +            elif not parsed_url.query:
 +                url = self._append_query_params(url)
 +
@@ -109,7 +109,7 @@ index 923887e6..2d4c9386 100644
 +            except OSError as err:
 +                log.error(err)
 +            finally:
-+                self.session.http.headers.pop("X-Donate-To", None)
++                self.session.http.headers.pop("x-donate-to", None)
 +
 +        if self.fallback_on_fail:
 +            log.info("No playlist proxies available, falling back to Twitch servers")
