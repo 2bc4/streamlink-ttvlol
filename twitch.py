@@ -310,7 +310,6 @@ class PlaylistProxyService:
                 url = self._append_query_params(url)
 
             log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
-            log.debug(f"Raw playlist proxy URL: '{url}'")
             try:
                 return TwitchHLSStream.parse_variant_playlist(self.session, url)
             except OSError as err:
