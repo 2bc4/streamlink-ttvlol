@@ -263,9 +263,9 @@ class UsherService:
 
 
 class PlaylistProxyService:
-    def __init__(self, plugin):
-        self.plugin = plugin
-        self.session = self.plugin.session
+    def __init__(self, session, upstream_get_streams):
+        self.session = session
+        self.upstream_get_streams = upstream_get_streams
         self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
         self.excluded_channels = map(str.lower, self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or [])
         self.fallback_on_fail = self.session.get_plugin_option("twitch", "proxy-playlist-fallback")
@@ -288,11 +288,11 @@ class PlaylistProxyService:
 
     def streams(self, channel):
         if not self.playlist_proxies:
-            return self.plugin._get_hls_streams_live()
+            return self.upstream_get_streams()
 
         if channel in self.excluded_channels:
             log.info(f"Channel {channel} excluded from playlist proxy")
-            return self.plugin._get_hls_streams_live()
+            return self.upstream_get_streams()
 
         log.debug(f"Getting live HLS streams for {channel}")
         self.session.http.headers.update({
@@ -319,7 +319,7 @@ class PlaylistProxyService:
 
         if self.fallback_on_fail:
             log.info("No playlist proxies available, falling back to Twitch servers")
-            return self.plugin._get_hls_streams_live()
+            return self.upstream_get_streams()
 
         raise NoStreamsError
 
@@ -733,7 +733,7 @@ class Twitch(Plugin):
 
         self.api = TwitchAPI(session=self.session)
         self.usher = UsherService(session=self.session)
-        self.playlist_proxy = PlaylistProxyService(plugin=self)
+        self.playlist_proxy = PlaylistProxyService(self.session, self._get_hls_streams_live)
 
         def method_factory(parent_method):
             def inner():
