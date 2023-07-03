@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 923887e6..91330d5d 100644
+index b11e5689..42ac5fc7 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -43,27 +43,36 @@ index 923887e6..91330d5d 100644
          return self.stream.disable_ads and sequence.segment.ad
  
  
-@@ -206,6 +217,7 @@ class TwitchHLSStream(HLSStream):
+@@ -202,10 +213,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
+ class TwitchHLSStream(HLSStream):
+     __reader__ = TwitchHLSStreamReader
+ 
+-    def __init__(self, *args, disable_ads: bool = False, low_latency: bool = False, **kwargs):
++    def __init__(self, *args, disable_ads: bool = False, low_latency: bool = False, reexec_on_ad: bool = False, **kwargs):
          super().__init__(*args, **kwargs)
-         self.disable_ads = self.session.get_plugin_option("twitch", "disable-ads")
-         self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
-+        self.reexec_on_ad = self.session.get_plugin_option("twitch", "reexec-on-ad")
+         self.disable_ads = disable_ads
+         self.low_latency = low_latency
++        self.reexec_on_ad = reexec_on_ad
  
  
  class UsherService:
-@@ -250,6 +262,68 @@ class UsherService:
+@@ -250,6 +262,72 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
-+class PlaylistProxyService:
-+    def __init__(self, session, upstream_get_streams):
-+        self.session = session
-+        self.upstream_get_streams = upstream_get_streams
-+        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
-+        self.excluded_channels = map(str.lower, self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or [])
-+        self.fallback_on_fail = self.session.get_plugin_option("twitch", "proxy-playlist-fallback")
++class PlaylistProxiesUnavailable(Exception):
++    """
++    No playlist proxies available.
++    """
 +
-+        if self.session.get_plugin_option("twitch", "ttvlol"):
++class PlaylistProxyService:
++    def __init__(self, session, playlist_proxies, excluded_channels, fallback, ttvlol):
++        self.session = session
++        self.playlist_proxies = playlist_proxies or []
++        self.excluded_channels = map(str.lower, excluded_channels or [])
++        self.fallback = fallback
++
++        if ttvlol:
 +            self.playlist_proxies = ["https://api.ttv.lol"]
 +
 +    def _append_query_params(self, url):
@@ -81,11 +90,11 @@ index 923887e6..91330d5d 100644
 +
 +    def streams(self, channel):
 +        if not self.playlist_proxies:
-+            return self.upstream_get_streams()
++            raise PlaylistProxiesUnavailable
 +
 +        if channel in self.excluded_channels:
 +            log.info(f"Channel {channel} excluded from playlist proxy")
-+            return self.upstream_get_streams()
++            raise PlaylistProxiesUnavailable
 +
 +        log.debug(f"Getting live HLS streams for {channel}")
 +        self.session.http.headers.update({
@@ -110,9 +119,9 @@ index 923887e6..91330d5d 100644
 +            finally:
 +                self.session.http.headers.pop("x-donate-to", None)
 +
-+        if self.fallback_on_fail:
++        if self.fallback:
 +            log.info("No playlist proxies available, falling back to Twitch servers")
-+            return self.upstream_get_streams()
++            raise PlaylistProxiesUnavailable
 +
 +        raise NoStreamsError
 +
@@ -120,7 +129,7 @@ index 923887e6..91330d5d 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -573,6 +647,56 @@ class TwitchAPI:
+@@ -573,6 +651,56 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -177,30 +186,47 @@ index 923887e6..91330d5d 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -591,6 +715,9 @@ class Twitch(Plugin):
+@@ -591,6 +719,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol 28ab1e3b-master")
++        log.info("streamlink-ttvlol d314c5b8-master")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -606,6 +733,7 @@ class Twitch(Plugin):
- 
-         self.api = TwitchAPI(session=self.session)
+@@ -610,6 +741,13 @@ class Twitch(Plugin):
+             access_token_param=self.get_option("access-token-param"),
+         )
          self.usher = UsherService(session=self.session)
-+        self.playlist_proxy = PlaylistProxyService(self.session, self._get_hls_streams_live)
++        self.playlist_proxy = PlaylistProxyService(
++                session=self.session,
++                playlist_proxies=self.get_option("proxy-playlist"),
++                excluded_channels=self.get_option("proxy-playlist-exclude"),
++                fallback=self.get_option("proxy-playlist-fallback"),
++                ttvlol=self.get_option("ttvlol"),
++        )
  
          def method_factory(parent_method):
              def inner():
-@@ -727,7 +855,7 @@ class Twitch(Plugin):
+@@ -709,6 +847,7 @@ class Twitch(Plugin):
+                 keywords={
+                     "disable_ads": self.get_option("disable-ads"),
+                     "low_latency": self.get_option("low-latency"),
++                    "reexec_on_ad": self.get_option("reexec-on-ad"),
+                 },
+                 **extra_params,
+             )
+@@ -740,7 +879,10 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
 -            return self._get_hls_streams_live()
-+            return self.playlist_proxy.streams(self.channel)
++            try:
++                return self.playlist_proxy.streams(self.channel)
++            except PlaylistProxiesUnavailable:
++                return self._get_hls_streams_live()
  
  
  __plugin__ = Twitch

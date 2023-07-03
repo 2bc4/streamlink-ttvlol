@@ -213,11 +213,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
 class TwitchHLSStream(HLSStream):
     __reader__ = TwitchHLSStreamReader
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, disable_ads: bool = False, low_latency: bool = False, reexec_on_ad: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
-        self.disable_ads = self.session.get_plugin_option("twitch", "disable-ads")
-        self.low_latency = self.session.get_plugin_option("twitch", "low-latency")
-        self.reexec_on_ad = self.session.get_plugin_option("twitch", "reexec-on-ad")
+        self.disable_ads = disable_ads
+        self.low_latency = low_latency
+        self.reexec_on_ad = reexec_on_ad
 
 
 class UsherService:
@@ -262,15 +262,19 @@ class UsherService:
         return self._create_url(f"/vod/{video_id}", **extra_params)
 
 
-class PlaylistProxyService:
-    def __init__(self, session, upstream_get_streams):
-        self.session = session
-        self.upstream_get_streams = upstream_get_streams
-        self.playlist_proxies = self.session.get_plugin_option("twitch", "proxy-playlist") or []
-        self.excluded_channels = map(str.lower, self.session.get_plugin_option("twitch", "proxy-playlist-exclude") or [])
-        self.fallback_on_fail = self.session.get_plugin_option("twitch", "proxy-playlist-fallback")
+class PlaylistProxiesUnavailable(Exception):
+    """
+    No playlist proxies available.
+    """
 
-        if self.session.get_plugin_option("twitch", "ttvlol"):
+class PlaylistProxyService:
+    def __init__(self, session, playlist_proxies, excluded_channels, fallback, ttvlol):
+        self.session = session
+        self.playlist_proxies = playlist_proxies or []
+        self.excluded_channels = map(str.lower, excluded_channels or [])
+        self.fallback = fallback
+
+        if ttvlol:
             self.playlist_proxies = ["https://api.ttv.lol"]
 
     def _append_query_params(self, url):
@@ -288,11 +292,11 @@ class PlaylistProxyService:
 
     def streams(self, channel):
         if not self.playlist_proxies:
-            return self.upstream_get_streams()
+            raise PlaylistProxiesUnavailable
 
         if channel in self.excluded_channels:
             log.info(f"Channel {channel} excluded from playlist proxy")
-            return self.upstream_get_streams()
+            raise PlaylistProxiesUnavailable
 
         log.debug(f"Getting live HLS streams for {channel}")
         self.session.http.headers.update({
@@ -317,9 +321,9 @@ class PlaylistProxyService:
             finally:
                 self.session.http.headers.pop("x-donate-to", None)
 
-        if self.fallback_on_fail:
+        if self.fallback:
             log.info("No playlist proxies available, falling back to Twitch servers")
-            return self.upstream_get_streams()
+            raise PlaylistProxiesUnavailable
 
         raise NoStreamsError
 
@@ -327,13 +331,13 @@ class PlaylistProxyService:
 class TwitchAPI:
     CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
 
-    def __init__(self, session):
+    def __init__(self, session, api_header=None, access_token_param=None):
         self.session = session
         self.headers = {
             "Client-ID": self.CLIENT_ID,
         }
-        self.headers.update(**dict(session.get_plugin_option("twitch", "api-header") or []))
-        self.access_token_params = dict(session.get_plugin_option("twitch", "access-token-param") or [])
+        self.headers.update(**dict(api_header or []))
+        self.access_token_params = dict(access_token_param or [])
         self.access_token_params.setdefault("playerType", "embed")
 
     def call(self, data, schema=None, **kwargs):
@@ -715,7 +719,7 @@ class Twitch(Plugin):
         self.clip_name = None
         self._checked_metadata = False
 
-        log.info("streamlink-ttvlol 28ab1e3b-master")
+        log.info("streamlink-ttvlol d314c5b8-master")
         log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 
         if self.subdomain == "player":
@@ -731,9 +735,19 @@ class Twitch(Plugin):
             self.video_id = match.get("video_id") or match.get("videos_id")
             self.clip_name = match.get("clip_name")
 
-        self.api = TwitchAPI(session=self.session)
+        self.api = TwitchAPI(
+            session=self.session,
+            api_header=self.get_option("api-header"),
+            access_token_param=self.get_option("access-token-param"),
+        )
         self.usher = UsherService(session=self.session)
-        self.playlist_proxy = PlaylistProxyService(self.session, self._get_hls_streams_live)
+        self.playlist_proxy = PlaylistProxyService(
+                session=self.session,
+                playlist_proxies=self.get_option("proxy-playlist"),
+                excluded_channels=self.get_option("proxy-playlist-exclude"),
+                fallback=self.get_option("proxy-playlist-fallback"),
+                ttvlol=self.get_option("ttvlol"),
+        )
 
         def method_factory(parent_method):
             def inner():
@@ -826,7 +840,17 @@ class Twitch(Plugin):
                 time_offset = 0
 
         try:
-            streams = TwitchHLSStream.parse_variant_playlist(self.session, url, start_offset=time_offset, **extra_params)
+            streams = TwitchHLSStream.parse_variant_playlist(
+                self.session,
+                url,
+                start_offset=time_offset,
+                keywords={
+                    "disable_ads": self.get_option("disable-ads"),
+                    "low_latency": self.get_option("low-latency"),
+                    "reexec_on_ad": self.get_option("reexec-on-ad"),
+                },
+                **extra_params,
+            )
         except OSError as err:
             err = str(err)
             if "404 Client Error" in err or "Failed to parse playlist" in err:
@@ -855,7 +879,10 @@ class Twitch(Plugin):
         elif self.clip_name:
             return self._get_clips()
         elif self.channel:
-            return self.playlist_proxy.streams(self.channel)
+            try:
+                return self.playlist_proxy.streams(self.channel)
+            except PlaylistProxiesUnavailable:
+                return self._get_hls_streams_live()
 
 
 __plugin__ = Twitch
