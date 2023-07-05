@@ -263,10 +263,11 @@ class UsherService:
         return self._create_url(f"/vod/{video_id}", **extra_params)
 
 
-class PlaylistProxiesUnavailable(Exception):
+class NoPlaylistProxyAvailable(Exception):
     """
     No playlist proxies available.
     """
+
 
 class PlaylistProxyService:
     def __init__(self, session, playlist_proxies, excluded_channels, fallback, ttvlol):
@@ -291,13 +292,13 @@ class PlaylistProxyService:
 
         return req.url
 
-    def streams(self, channel):
+    def streams(self, channel, keywords):
         if not self.playlist_proxies:
-            raise PlaylistProxiesUnavailable
+            raise NoPlaylistProxyAvailable
 
         if channel in self.excluded_channels:
             log.info(f"Channel {channel} excluded from playlist proxy")
-            raise PlaylistProxiesUnavailable
+            raise NoPlaylistProxyAvailable
 
         log.debug(f"Getting live HLS streams for {channel}")
         self.session.http.headers.update({
@@ -316,7 +317,7 @@ class PlaylistProxyService:
 
             log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
             try:
-                return TwitchHLSStream.parse_variant_playlist(self.session, url)
+                return TwitchHLSStream.parse_variant_playlist(self.session, url, keywords=keywords)
             except OSError as err:
                 log.error(err)
             finally:
@@ -324,7 +325,7 @@ class PlaylistProxyService:
 
         if self.fallback:
             log.info("No playlist proxies available, falling back to Twitch servers")
-            raise PlaylistProxiesUnavailable
+            raise NoPlaylistProxyAvailable
 
         raise NoStreamsError
 
@@ -848,7 +849,6 @@ class Twitch(Plugin):
                 keywords={
                     "disable_ads": self.get_option("disable-ads"),
                     "low_latency": self.get_option("low-latency"),
-                    "reexec_on_ad": self.get_option("reexec-on-ad"),
                 },
                 **extra_params,
             )
@@ -881,8 +881,15 @@ class Twitch(Plugin):
             return self._get_clips()
         elif self.channel:
             try:
-                return self.playlist_proxy.streams(self.channel)
-            except PlaylistProxiesUnavailable:
+                return self.playlist_proxy.streams(
+                    channel=self.channel,
+                    keywords={
+                        "disable_ads": self.get_option("disable-ads"),
+                        "low_latency": self.get_option("low-latency"),
+                        "reexec_on_ad": self.get_option("reexec-on-ad"),
+                    },
+                )
+            except NoPlaylistProxyAvailable:
                 return self._get_hls_streams_live()
 
 

@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index b11e5689..0ac4832f 100644
+index b11e5689..d7fac0a2 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -57,14 +57,15 @@ index b11e5689..0ac4832f 100644
  
  
  class UsherService:
-@@ -250,6 +263,72 @@ class UsherService:
+@@ -250,6 +263,73 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
-+class PlaylistProxiesUnavailable(Exception):
++class NoPlaylistProxyAvailable(Exception):
 +    """
 +    No playlist proxies available.
 +    """
++
 +
 +class PlaylistProxyService:
 +    def __init__(self, session, playlist_proxies, excluded_channels, fallback, ttvlol):
@@ -89,13 +90,13 @@ index b11e5689..0ac4832f 100644
 +
 +        return req.url
 +
-+    def streams(self, channel):
++    def streams(self, channel, keywords):
 +        if not self.playlist_proxies:
-+            raise PlaylistProxiesUnavailable
++            raise NoPlaylistProxyAvailable
 +
 +        if channel in self.excluded_channels:
 +            log.info(f"Channel {channel} excluded from playlist proxy")
-+            raise PlaylistProxiesUnavailable
++            raise NoPlaylistProxyAvailable
 +
 +        log.debug(f"Getting live HLS streams for {channel}")
 +        self.session.http.headers.update({
@@ -114,7 +115,7 @@ index b11e5689..0ac4832f 100644
 +
 +            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
 +            try:
-+                return TwitchHLSStream.parse_variant_playlist(self.session, url)
++                return TwitchHLSStream.parse_variant_playlist(self.session, url, keywords=keywords)
 +            except OSError as err:
 +                log.error(err)
 +            finally:
@@ -122,7 +123,7 @@ index b11e5689..0ac4832f 100644
 +
 +        if self.fallback:
 +            log.info("No playlist proxies available, falling back to Twitch servers")
-+            raise PlaylistProxiesUnavailable
++            raise NoPlaylistProxyAvailable
 +
 +        raise NoStreamsError
 +
@@ -130,7 +131,7 @@ index b11e5689..0ac4832f 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -573,6 +652,56 @@ class TwitchAPI:
+@@ -573,6 +653,56 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -187,7 +188,7 @@ index b11e5689..0ac4832f 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -591,6 +720,9 @@ class Twitch(Plugin):
+@@ -591,6 +721,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -197,7 +198,7 @@ index b11e5689..0ac4832f 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -610,6 +742,13 @@ class Twitch(Plugin):
+@@ -610,6 +743,13 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -211,22 +212,21 @@ index b11e5689..0ac4832f 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -709,6 +848,7 @@ class Twitch(Plugin):
-                 keywords={
-                     "disable_ads": self.get_option("disable-ads"),
-                     "low_latency": self.get_option("low-latency"),
-+                    "reexec_on_ad": self.get_option("reexec-on-ad"),
-                 },
-                 **extra_params,
-             )
-@@ -740,7 +880,10 @@ class Twitch(Plugin):
+@@ -740,7 +880,17 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
 -            return self._get_hls_streams_live()
 +            try:
-+                return self.playlist_proxy.streams(self.channel)
-+            except PlaylistProxiesUnavailable:
++                return self.playlist_proxy.streams(
++                    channel=self.channel,
++                    keywords={
++                        "disable_ads": self.get_option("disable-ads"),
++                        "low_latency": self.get_option("low-latency"),
++                        "reexec_on_ad": self.get_option("reexec-on-ad"),
++                    },
++                )
++            except NoPlaylistProxyAvailable:
 +                return self._get_hls_streams_live()
  
  
