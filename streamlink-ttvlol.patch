@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index b11e5689..42ac5fc7 100644
+index b11e5689..0ac4832f 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -26,12 +26,13 @@ index b11e5689..42ac5fc7 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.times import hours_minutes_seconds
  from streamlink.utils.url import update_qsd
-@@ -177,6 +178,16 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
+@@ -177,6 +178,17 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
      stream: "TwitchHLSStream"
  
      def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
 +        if self.stream.reexec_on_ad and sequence.segment.ad:
 +            log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
++            log.debug(f"argv: {sys.argv}")
 +            if sys.platform == "win32":
 +                # Python Win32 bug https://bugs.python.org/issue436259
 +
@@ -43,7 +44,7 @@ index b11e5689..42ac5fc7 100644
          return self.stream.disable_ads and sequence.segment.ad
  
  
-@@ -202,10 +213,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
+@@ -202,10 +214,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
  class TwitchHLSStream(HLSStream):
      __reader__ = TwitchHLSStreamReader
  
@@ -56,7 +57,7 @@ index b11e5689..42ac5fc7 100644
  
  
  class UsherService:
-@@ -250,6 +262,72 @@ class UsherService:
+@@ -250,6 +263,72 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -129,7 +130,7 @@ index b11e5689..42ac5fc7 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -573,6 +651,56 @@ class TwitchAPI:
+@@ -573,6 +652,56 @@ class TwitchAPI:
          Can be repeated to add multiple parameters.
      """,
  )
@@ -186,7 +187,7 @@ index b11e5689..42ac5fc7 100644
  class Twitch(Plugin):
      @classmethod
      def stream_weight(cls, stream):
-@@ -591,6 +719,9 @@ class Twitch(Plugin):
+@@ -591,6 +720,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -196,7 +197,7 @@ index b11e5689..42ac5fc7 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -610,6 +741,13 @@ class Twitch(Plugin):
+@@ -610,6 +742,13 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -210,7 +211,7 @@ index b11e5689..42ac5fc7 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -709,6 +847,7 @@ class Twitch(Plugin):
+@@ -709,6 +848,7 @@ class Twitch(Plugin):
                  keywords={
                      "disable_ads": self.get_option("disable-ads"),
                      "low_latency": self.get_option("low-latency"),
@@ -218,7 +219,7 @@ index b11e5689..42ac5fc7 100644
                  },
                  **extra_params,
              )
-@@ -740,7 +879,10 @@ class Twitch(Plugin):
+@@ -740,7 +880,10 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
