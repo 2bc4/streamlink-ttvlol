@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index b11e5689..d7fac0a2 100644
+index fb3e8e81..6070cbc7 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -9,12 +9,13 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
@@ -90,7 +90,7 @@ index b11e5689..d7fac0a2 100644
 +
 +        return req.url
 +
-+    def streams(self, channel, keywords):
++    def streams(self, channel, **kwargs):
 +        if not self.playlist_proxies:
 +            raise NoPlaylistProxyAvailable
 +
@@ -115,7 +115,7 @@ index b11e5689..d7fac0a2 100644
 +
 +            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
 +            try:
-+                return TwitchHLSStream.parse_variant_playlist(self.session, url, keywords=keywords)
++                return TwitchHLSStream.parse_variant_playlist(self.session, url, **kwargs)
 +            except OSError as err:
 +                log.error(err)
 +            finally:
@@ -192,7 +192,7 @@ index b11e5689..d7fac0a2 100644
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol d314c5b8-master")
++        log.info("streamlink-ttvlol d5937739-master")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
@@ -212,7 +212,7 @@ index b11e5689..d7fac0a2 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -740,7 +880,17 @@ class Twitch(Plugin):
+@@ -738,7 +878,15 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
@@ -220,11 +220,9 @@ index b11e5689..d7fac0a2 100644
 +            try:
 +                return self.playlist_proxy.streams(
 +                    channel=self.channel,
-+                    keywords={
-+                        "disable_ads": self.get_option("disable-ads"),
-+                        "low_latency": self.get_option("low-latency"),
-+                        "reexec_on_ad": self.get_option("reexec-on-ad"),
-+                    },
++                    disable_ads=self.get_option("disable-ads"),
++                    low_latency=self.get_option("low-latency"),
++                    reexec_on_ad=self.get_option("reexec-on-ad"),
 +                )
 +            except NoPlaylistProxyAvailable:
 +                return self._get_hls_streams_live()

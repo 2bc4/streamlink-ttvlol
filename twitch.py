@@ -292,7 +292,7 @@ class PlaylistProxyService:
 
         return req.url
 
-    def streams(self, channel, keywords):
+    def streams(self, channel, **kwargs):
         if not self.playlist_proxies:
             raise NoPlaylistProxyAvailable
 
@@ -317,7 +317,7 @@ class PlaylistProxyService:
 
             log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
             try:
-                return TwitchHLSStream.parse_variant_playlist(self.session, url, keywords=keywords)
+                return TwitchHLSStream.parse_variant_playlist(self.session, url, **kwargs)
             except OSError as err:
                 log.error(err)
             finally:
@@ -721,7 +721,7 @@ class Twitch(Plugin):
         self.clip_name = None
         self._checked_metadata = False
 
-        log.info("streamlink-ttvlol d314c5b8-master")
+        log.info("streamlink-ttvlol d5937739-master")
         log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 
         if self.subdomain == "player":
@@ -846,10 +846,8 @@ class Twitch(Plugin):
                 self.session,
                 url,
                 start_offset=time_offset,
-                keywords={
-                    "disable_ads": self.get_option("disable-ads"),
-                    "low_latency": self.get_option("low-latency"),
-                },
+                disable_ads=self.get_option("disable-ads"),
+                low_latency=self.get_option("low-latency"),
                 **extra_params,
             )
         except OSError as err:
@@ -883,11 +881,9 @@ class Twitch(Plugin):
             try:
                 return self.playlist_proxy.streams(
                     channel=self.channel,
-                    keywords={
-                        "disable_ads": self.get_option("disable-ads"),
-                        "low_latency": self.get_option("low-latency"),
-                        "reexec_on_ad": self.get_option("reexec-on-ad"),
-                    },
+                    disable_ads=self.get_option("disable-ads"),
+                    low_latency=self.get_option("low-latency"),
+                    reexec_on_ad=self.get_option("reexec-on-ad"),
                 )
             except NoPlaylistProxyAvailable:
                 return self._get_hls_streams_live()
