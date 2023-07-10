@@ -201,6 +201,9 @@ class TwitchHLSStreamReader(HLSStreamReader):
     stream: "TwitchHLSStream"
 
     def __init__(self, stream: "TwitchHLSStream"):
+        if stream.reexec_on_ad:
+            stream.disable_ads = False
+            log.info("Will re-exec on ad segments")
         if stream.disable_ads:
             log.info("Will skip ad segments")
         if stream.low_latency:
@@ -701,6 +704,7 @@ class TwitchAPI:
     action="store_true",
     help="""
         Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
+        Overrides --twitch-disable-ads.
     """,
 )
 class Twitch(Plugin):
