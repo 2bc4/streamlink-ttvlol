@@ -5,6 +5,7 @@ $type live, vod
 $notes See the :ref:`Authentication <cli/plugins/twitch:Authentication>` docs on how to prevent ads.
 $notes Read more about :ref:`embedded ads <cli/plugins/twitch:Embedded ads>` here.
 $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` is supported.
+$notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integrity token>` on streaming access token failure.
 """
 
 import argparse
@@ -851,7 +852,7 @@ class Twitch(Plugin):
         self.clip_name = None
         self._checked_metadata = False
 
-        log.info("streamlink-ttvlol e9500dff-master")
+        log.info("streamlink-ttvlol d70fe487-master")
         log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 
         if self.subdomain == "player":

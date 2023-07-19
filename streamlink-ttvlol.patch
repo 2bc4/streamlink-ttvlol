@@ -1,8 +1,8 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index ceac45c9..7f7d8a41 100644
+index beb1b5a0..0e0efa81 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
-@@ -10,13 +10,14 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
+@@ -11,13 +11,14 @@ $notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integr
  import argparse
  import base64
  import logging
@@ -18,7 +18,7 @@ index ceac45c9..7f7d8a41 100644
  
  from streamlink.exceptions import NoStreamsError, PluginError
  from streamlink.plugin import Plugin, pluginargument, pluginmatcher
-@@ -25,7 +26,7 @@ from streamlink.session import Streamlink
+@@ -26,7 +27,7 @@ from streamlink.session import Streamlink
  from streamlink.stream.hls import HLSStream, HLSStreamReader, HLSStreamWorker, HLSStreamWriter
  from streamlink.stream.hls_playlist import M3U8, ByteRange, DateRange, ExtInf, Key, M3U8Parser, Map, load as load_hls_playlist
  from streamlink.stream.http import HTTPStream
@@ -27,7 +27,7 @@ index ceac45c9..7f7d8a41 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
  from streamlink.utils.times import fromtimestamp, hours_minutes_seconds
-@@ -181,6 +182,17 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
+@@ -182,6 +183,17 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
      stream: "TwitchHLSStream"
  
      def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
@@ -45,7 +45,7 @@ index ceac45c9..7f7d8a41 100644
          return self.stream.disable_ads and sequence.segment.ad
  
  
-@@ -193,6 +205,9 @@ class TwitchHLSStreamReader(HLSStreamReader):
+@@ -194,6 +206,9 @@ class TwitchHLSStreamReader(HLSStreamReader):
      stream: "TwitchHLSStream"
  
      def __init__(self, stream: "TwitchHLSStream"):
@@ -55,7 +55,7 @@ index ceac45c9..7f7d8a41 100644
          if stream.disable_ads:
              log.info("Will skip ad segments")
          if stream.low_latency:
-@@ -206,10 +221,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
+@@ -207,10 +222,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
  class TwitchHLSStream(HLSStream):
      __reader__ = TwitchHLSStreamReader
  
@@ -68,7 +68,7 @@ index ceac45c9..7f7d8a41 100644
  
  
  class UsherService:
-@@ -254,6 +270,73 @@ class UsherService:
+@@ -255,6 +271,73 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -142,7 +142,7 @@ index ceac45c9..7f7d8a41 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -697,6 +780,57 @@ class TwitchClientIntegrity:
+@@ -698,6 +781,57 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -200,17 +200,17 @@ index ceac45c9..7f7d8a41 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -717,6 +851,9 @@ class Twitch(Plugin):
+@@ -718,6 +852,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol e9500dff-master")
++        log.info("streamlink-ttvlol d70fe487-master")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -736,6 +873,13 @@ class Twitch(Plugin):
+@@ -737,6 +874,13 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -224,7 +224,7 @@ index ceac45c9..7f7d8a41 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -899,7 +1043,15 @@ class Twitch(Plugin):
+@@ -900,7 +1044,15 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
