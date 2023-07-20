@@ -786,15 +786,19 @@ class TwitchClientIntegrity:
     metavar="URLS",
     type=comma_list,
     help="""
-        Proxy playlist request through a server that supports the TTV.LOL API.
+        Proxy the playlist request through a server specified at <URL>.
+
+        If the URL has no path the playlist will be requested using the TTVLOL API.
+        If the URL path includes [channel] the playlist will not be requested with the TTVLOL API and
+        [channel] will be replaced with the channel name at runtime.
 
         Can be multiple comma separated server URLs to be used as fallback.
 
-        Only livestreams will use the playlist proxy, VODs and clips will use upstream behavior.
-
         When used the Twitch GraphQL API will not be called.
-        --twitch-api-header and --twitch-access-token-param will have no effect.
-        It will also not be possible to check for subscriber only streams and reruns will be disabled.
+        Only livestreams will use the playlist proxy, VODs and clips will use upstream behavior.
+        Integrity token retrieval will not be attempted.
+        --twitch-api-header, --twitch-access-token-param, and --twitch-purge-client-integrity will have no effect.
+        It will also not be possible to check for subscriber only streams.
     """,
 )
 @pluginargument(
@@ -829,7 +833,7 @@ class TwitchClientIntegrity:
     action="store_true",
     help="""
         Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
-        Overrides --twitch-disable-ads.
+        Overrides --twitch-disable-ads
     """,
 )
 class Twitch(Plugin):
