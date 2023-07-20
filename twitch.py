@@ -856,7 +856,7 @@ class Twitch(Plugin):
         self.clip_name = None
         self._checked_metadata = False
 
-        log.info("streamlink-ttvlol d70fe487-master")
+        log.info("streamlink-ttvlol 6.0.0-20230720")
         log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 
         if self.subdomain == "player":
