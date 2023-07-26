@@ -1,25 +1,27 @@
 # streamlink-ttvlol
 ## About
 
-Streamlink Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist (or try the experimental flag `--twitch-reexec-on-ad` to do this automatically).
+[Streamlink](https://streamlink.github.io) Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist (or try the experimental argument `--twitch-reexec-on-ad` to do this automatically).
+
+Currently not compatible with TTV-LOL-PRO v2 proxies.
 
 ## Installation
 ***Follow the instructions below for your specific operating system.***
 
 [Windows](#windows), [Linux](#linux), [MacOS](#macos).
 
-If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). 
+If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
+
+After installation you will need to point Streamlink at a playlist proxy server with [plugin arguments](#arguments).
 
 More info on Streamlink plugin sideloading [here](https://streamlink.github.io/latest/cli/plugin-sideloading.html).
-
-After installation you will need to point Streamlink at a playlist proxy server with [flags](#Flags).
 
 ## Windows
 ### Automatically
 
 Copy the command below and paste it into powershell. ***Do not run powershell as admin.*** 
 
-If you don't know how to open powershell. Press windows key + r and type ```powershell``` into the box and press enter. Copy the contents of the box below and then right click in the powershell window and press enter:
+If you don't know how to open powershell. Press windows key + r and type `powershell` into the box and press enter. Copy the contents of the box below and then right click in the powershell window and press enter:
 
 ```powershell
 $null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile .\AppData\Roaming\streamlink\plugins\twitch.py
@@ -73,10 +75,10 @@ Copy the `twitch.py` file to:
 ${HOME}/Library/Application Support/streamlink/plugins
 ```
 
-## Flags
-streamlink-ttvlol adds the following flags:
+## Arguments
+streamlink-ttvlol adds the following plugin arguments:
 
-|Flag                                    |Example                                                                                    |Description|
+|Argument                                |Example                                                                                    |Description|
 |:---------------------------------------|:------------------------------------------------------------------------------------------|:----------|
 |<pre/>`--twitch-proxy-playlist`         |<pre/>`--twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev/live/[channel]`|Proxy playlist request through a server that supports the TTV.LOL API (or a server that doesn't with a custom URL, see [here](https://github.com/2bc4/streamlink-ttvlol/releases/tag/5.3.0-20230313)). It can also be pointed at multiple comma separated servers which will try each server in order until successful.
 |<pre/>`--twitch-proxy-playlist-exclude` |<pre/>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`                         |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
@@ -85,7 +87,7 @@ streamlink-ttvlol adds the following flags:
 |<pre/>`--twitch-reexec-on-ad`           |<pre/>`--twitch-reexec-on-ad`                                                              |*(Experimental)* Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment. <br/> **NOTE:** If you're recording the stream to a file with `-o` or similar this will overwrite the file when it triggers. To workaround this you can create a unique filename for each re-exec by appending the current timestamp with [metadata variables](https://streamlink.github.io/cli/metadata.html#variables).
 
 ## streamlink-twitch-gui
-If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above flag of your choosing to the "Custom parameters" box on the `Streaming` tab.
+If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above argument of your choosing to the "Custom parameters" box on the `Streaming` tab.
 
 ## Chatterino
-If you're using [Chatterino](https://github.com/Chatterino/chatterino2) with Streamlink you'll need to add the above flag of your choosing to Settings -> External Tools -> Streamlink -> Additional options.
+If you're using [Chatterino](https://github.com/Chatterino/chatterino2) with Streamlink you'll need to add the above argument of your choosing to Settings -> External Tools -> Streamlink -> Additional options.
