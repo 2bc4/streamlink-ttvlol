@@ -91,8 +91,14 @@ Official TTV.LOL server:
 - `https://api.ttv.lol`
 
 Official [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) servers:
-- `https://eu.luminous.dev`
-- `https://as.luminous.dev`
+- `https://eu.luminous.dev` (Europe)
+- `https://as.luminous.dev` (Asia)
+
+Official [TTV-LOL-PRO](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032) v1 servers:
+- `https://lb-eu.cdn-perfprod.com` (Europe)
+- `https://lb-eu2.cdn-perfprod.com` (Europe 2)
+- `https://lb-na.cdn-perfprod.com` (NA)
+- `https://lb-as.cdn-perfprod.com` (Asia)
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above argument of your choosing to the "Custom parameters" box on the `Streaming` tab.
