@@ -87,7 +87,10 @@ streamlink-ttvlol adds the following plugin arguments:
 |<pre/>`--twitch-reexec-on-ad`           |<pre/>`--twitch-reexec-on-ad`                                                              |*(Experimental)* Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment. <br/> **NOTE:** If you're recording the stream to a file with `-o` or similar this will overwrite the file when it triggers. To workaround this you can create a unique filename for each re-exec by appending the current timestamp with [metadata variables](https://streamlink.github.io/cli/metadata.html#variables).
 
 ## Known compatible public proxy servers
+Official TTV.LOL server:
 - `https://api.ttv.lol`
+
+Official [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) servers:
 - `https://eu.luminous.dev`
 - `https://as.luminous.dev`
 
