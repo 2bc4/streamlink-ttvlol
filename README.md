@@ -80,11 +80,16 @@ streamlink-ttvlol adds the following plugin arguments:
 
 |Argument                                |Example                                                                                    |Description|
 |:---------------------------------------|:------------------------------------------------------------------------------------------|:----------|
-|<pre/>`--twitch-proxy-playlist`         |<pre/>`--twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev/live/[channel]`|Proxy playlist request through a server that supports the TTV.LOL API (or a server that doesn't with a custom URL, see [here](https://github.com/2bc4/streamlink-ttvlol/releases/tag/5.3.0-20230313)). It can also be pointed at multiple comma separated servers which will try each server in order until successful.
+|<pre/>`--twitch-proxy-playlist`         |<pre/>`--twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev/live/[channel]` |Proxy playlist request through a server that supports the TTV.LOL API (or a server that doesn't with a custom URL, see [here](https://github.com/2bc4/streamlink-ttvlol/releases/tag/5.3.0-20230313)). It can also be pointed at multiple comma separated servers which will try each server in order until successful.
 |<pre/>`--twitch-proxy-playlist-exclude` |<pre/>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`                         |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
 |<pre/>`--twitch-proxy-playlist-fallback`|<pre/>`--twitch-proxy-playlist-fallback`                                                   |Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
 |<pre/>`--twitch-ttvlol`                 |<pre/>`--twitch-ttvlol`                                                                    |This is a convenience alias for: <pre/>`--twitch-proxy-playlist=https://api.ttv.lol`
 |<pre/>`--twitch-reexec-on-ad`           |<pre/>`--twitch-reexec-on-ad`                                                              |*(Experimental)* Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment. <br/> **NOTE:** If you're recording the stream to a file with `-o` or similar this will overwrite the file when it triggers. To workaround this you can create a unique filename for each re-exec by appending the current timestamp with [metadata variables](https://streamlink.github.io/cli/metadata.html#variables).
+
+## Known compatible public proxy servers
+- `https://api.ttv.lol`
+- `https://eu.luminous.dev`
+- `https://as.luminous.dev`
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above argument of your choosing to the "Custom parameters" box on the `Streaming` tab.
