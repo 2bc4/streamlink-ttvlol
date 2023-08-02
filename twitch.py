@@ -283,9 +283,8 @@ class PlaylistProxyService:
         self.playlist_proxies = playlist_proxies or []
         self.excluded_channels = map(str.lower, excluded_channels or [])
         self.fallback = fallback
-
         if ttvlol:
-            self.playlist_proxies = ["https://api.ttv.lol"]
+            self.playlist_proxies.insert(0, "https://api.ttv.lol")
 
     def _append_query_params(self, url):
         params = {
@@ -825,7 +824,6 @@ class TwitchClientIntegrity:
     action="store_true",
     help="""
         Alias for --twitch-proxy-playlist=https://api.ttv.lol
-        Overrides --twitch-proxy-playlist
     """,
 )
 @pluginargument(
