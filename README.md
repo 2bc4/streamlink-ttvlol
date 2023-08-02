@@ -97,8 +97,10 @@ Official [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) server
 Official [TTV-LOL-PRO](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032) v1 servers:
 - `https://lb-eu.cdn-perfprod.com` (Europe)
 - `https://lb-eu2.cdn-perfprod.com` (Europe 2)
+- `https://lb-eu3.cdn-perfprod.com` (Europe 3)
 - `https://lb-na.cdn-perfprod.com` (NA)
 - `https://lb-as.cdn-perfprod.com` (Asia)
+- `https://purpletv.cdn-perfprod.com/streamer/[channel]` (PurpleTV proxy. Does not support the TTV.LOL API, must specify full path as shown. May need to bump up `--stream-timeout` to avoid request timing out)
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above argument of your choosing to the "Custom parameters" box on the `Streaming` tab.
