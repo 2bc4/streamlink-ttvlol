@@ -11,7 +11,6 @@ $notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integr
 import argparse
 import base64
 import logging
-import os
 import re
 import sys
 from datetime import datetime, timedelta
@@ -183,17 +182,6 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
     stream: "TwitchHLSStream"
 
     def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
-        if self.stream.reexec_on_ad and sequence.segment.ad:
-            log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
-            log.debug(f"argv: {sys.argv}")
-            if sys.platform == "win32":
-                # Python Win32 bug https://bugs.python.org/issue436259
-
-                from subprocess import list2cmdline
-                os.execl(sys.executable, list2cmdline([sys.executable] + sys.argv))
-            else:
-                os.execv(sys.argv[0], sys.argv)
-
         return self.stream.disable_ads and sequence.segment.ad
 
 
@@ -206,9 +194,6 @@ class TwitchHLSStreamReader(HLSStreamReader):
     stream: "TwitchHLSStream"
 
     def __init__(self, stream: "TwitchHLSStream"):
-        if stream.reexec_on_ad:
-            stream.disable_ads = False
-            log.info("Will re-exec on ad segments")
         if stream.disable_ads:
             log.info("Will skip ad segments")
         if stream.low_latency:
@@ -222,11 +207,10 @@ class TwitchHLSStreamReader(HLSStreamReader):
 class TwitchHLSStream(HLSStream):
     __reader__ = TwitchHLSStreamReader
 
-    def __init__(self, *args, disable_ads: bool = False, low_latency: bool = False, reexec_on_ad: bool = False, **kwargs):
+    def __init__(self, *args, disable_ads: bool = False, low_latency: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
         self.disable_ads = disable_ads
         self.low_latency = low_latency
-        self.reexec_on_ad = reexec_on_ad
 
 
 class UsherService:
@@ -830,8 +814,7 @@ class TwitchClientIntegrity:
     "reexec-on-ad",
     action="store_true",
     help="""
-        Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
-        Overrides --twitch-disable-ads
+        Deprecated and will be removed in a future release.
     """,
 )
 class Twitch(Plugin):
@@ -1051,7 +1034,6 @@ class Twitch(Plugin):
                     channel=self.channel,
                     disable_ads=self.get_option("disable-ads"),
                     low_latency=self.get_option("low-latency"),
-                    reexec_on_ad=self.get_option("reexec-on-ad"),
                 )
             except NoPlaylistProxyAvailable:
                 return self._get_hls_streams_live()

@@ -1,7 +1,7 @@
 # streamlink-ttvlol
 ## About
 
-[Streamlink](https://streamlink.github.io) Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist (or try the experimental argument `--twitch-reexec-on-ad` to do this automatically).
+[Streamlink](https://streamlink.github.io) Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist.
 
 Currently not compatible with TTV-LOL-PRO v2 proxies.
 
@@ -84,7 +84,6 @@ streamlink-ttvlol adds the following plugin arguments:
 |<pre/>`--twitch-proxy-playlist-exclude` |<pre/>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`                         |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
 |<pre/>`--twitch-proxy-playlist-fallback`|<pre/>`--twitch-proxy-playlist-fallback`                                                   |Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
 |<pre/>`--twitch-ttvlol`                 |<pre/>`--twitch-ttvlol`                                                                    |This is a convenience alias for: <pre/>`--twitch-proxy-playlist=https://api.ttv.lol`
-|<pre/>`--twitch-reexec-on-ad`           |<pre/>`--twitch-reexec-on-ad`                                                              |*(Experimental)* Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment. <br/> **NOTE:** If you're recording the stream to a file with `-o` or similar this will overwrite the file when it triggers. To workaround this you can create a unique filename for each re-exec by appending the current timestamp with [metadata variables](https://streamlink.github.io/cli/metadata.html#variables).
 
 ## Known compatible public proxy servers
 Official TTV.LOL server:

@@ -1,15 +1,8 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index beb1b5a0..2d0d4928 100644
+index beb1b5a0..d0afc615 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
-@@ -11,13 +11,14 @@ $notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integr
- import argparse
- import base64
- import logging
-+import os
- import re
- import sys
- from datetime import datetime, timedelta
+@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
  from json import dumps as json_dumps
  from random import random
  from typing import List, Mapping, NamedTuple, Optional, Tuple
@@ -18,7 +11,7 @@ index beb1b5a0..2d0d4928 100644
  
  from streamlink.exceptions import NoStreamsError, PluginError
  from streamlink.plugin import Plugin, pluginargument, pluginmatcher
-@@ -26,7 +27,7 @@ from streamlink.session import Streamlink
+@@ -26,7 +26,7 @@ from streamlink.session import Streamlink
  from streamlink.stream.hls import HLSStream, HLSStreamReader, HLSStreamWorker, HLSStreamWriter
  from streamlink.stream.hls_playlist import M3U8, ByteRange, DateRange, ExtInf, Key, M3U8Parser, Map, load as load_hls_playlist
  from streamlink.stream.http import HTTPStream
@@ -27,48 +20,7 @@ index beb1b5a0..2d0d4928 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
  from streamlink.utils.times import fromtimestamp, hours_minutes_seconds
-@@ -182,6 +183,17 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
-     stream: "TwitchHLSStream"
- 
-     def should_filter_sequence(self, sequence: TwitchSequence):  # type: ignore[override]
-+        if self.stream.reexec_on_ad and sequence.segment.ad:
-+            log.info("Encountered an ad segment, re-execing to retrieve a new playlist")
-+            log.debug(f"argv: {sys.argv}")
-+            if sys.platform == "win32":
-+                # Python Win32 bug https://bugs.python.org/issue436259
-+
-+                from subprocess import list2cmdline
-+                os.execl(sys.executable, list2cmdline([sys.executable] + sys.argv))
-+            else:
-+                os.execv(sys.argv[0], sys.argv)
-+
-         return self.stream.disable_ads and sequence.segment.ad
- 
- 
-@@ -194,6 +206,9 @@ class TwitchHLSStreamReader(HLSStreamReader):
-     stream: "TwitchHLSStream"
- 
-     def __init__(self, stream: "TwitchHLSStream"):
-+        if stream.reexec_on_ad:
-+            stream.disable_ads = False
-+            log.info("Will re-exec on ad segments")
-         if stream.disable_ads:
-             log.info("Will skip ad segments")
-         if stream.low_latency:
-@@ -207,10 +222,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
- class TwitchHLSStream(HLSStream):
-     __reader__ = TwitchHLSStreamReader
- 
--    def __init__(self, *args, disable_ads: bool = False, low_latency: bool = False, **kwargs):
-+    def __init__(self, *args, disable_ads: bool = False, low_latency: bool = False, reexec_on_ad: bool = False, **kwargs):
-         super().__init__(*args, **kwargs)
-         self.disable_ads = disable_ads
-         self.low_latency = low_latency
-+        self.reexec_on_ad = reexec_on_ad
- 
- 
- class UsherService:
-@@ -255,6 +271,72 @@ class UsherService:
+@@ -255,6 +255,72 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -141,7 +93,7 @@ index beb1b5a0..2d0d4928 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -698,6 +780,60 @@ class TwitchClientIntegrity:
+@@ -698,6 +764,59 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -195,14 +147,13 @@ index beb1b5a0..2d0d4928 100644
 +    "reexec-on-ad",
 +    action="store_true",
 +    help="""
-+        Re-executes Streamlink to retrieve a new playlist when encountering an embedded advertisement segment.
-+        Overrides --twitch-disable-ads
++        Deprecated and will be removed in a future release.
 +    """,
 +)
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -718,6 +854,9 @@ class Twitch(Plugin):
+@@ -718,6 +837,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -212,7 +163,7 @@ index beb1b5a0..2d0d4928 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -737,6 +876,13 @@ class Twitch(Plugin):
+@@ -737,6 +859,13 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -226,7 +177,7 @@ index beb1b5a0..2d0d4928 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -900,7 +1046,15 @@ class Twitch(Plugin):
+@@ -900,7 +1029,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
@@ -236,7 +187,6 @@ index beb1b5a0..2d0d4928 100644
 +                    channel=self.channel,
 +                    disable_ads=self.get_option("disable-ads"),
 +                    low_latency=self.get_option("low-latency"),
-+                    reexec_on_ad=self.get_option("reexec-on-ad"),
 +                )
 +            except NoPlaylistProxyAvailable:
 +                return self._get_hls_streams_live()
