@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index beb1b5a0..d0afc615 100644
+index beb1b5a0..13d87efb 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -17,7 +17,7 @@ from datetime import datetime, timedelta
@@ -20,7 +20,7 @@ index beb1b5a0..d0afc615 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
  from streamlink.utils.times import fromtimestamp, hours_minutes_seconds
-@@ -255,6 +255,72 @@ class UsherService:
+@@ -255,6 +255,70 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -31,13 +31,11 @@ index beb1b5a0..d0afc615 100644
 +
 +
 +class PlaylistProxyService:
-+    def __init__(self, session, playlist_proxies, excluded_channels, fallback, ttvlol):
++    def __init__(self, session, playlist_proxies, excluded_channels, fallback):
 +        self.session = session
 +        self.playlist_proxies = playlist_proxies or []
 +        self.excluded_channels = map(str.lower, excluded_channels or [])
 +        self.fallback = fallback
-+        if ttvlol:
-+            self.playlist_proxies.insert(0, "https://api.ttv.lol")
 +
 +    def _append_query_params(self, url):
 +        params = {
@@ -93,7 +91,7 @@ index beb1b5a0..d0afc615 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -698,6 +764,59 @@ class TwitchClientIntegrity:
+@@ -698,6 +762,59 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -140,7 +138,7 @@ index beb1b5a0..d0afc615 100644
 +    "ttvlol",
 +    action="store_true",
 +    help="""
-+        Alias for --twitch-proxy-playlist=https://api.ttv.lol
++        Deprecated and will be removed in a future release.
 +    """,
 +)
 +@pluginargument(
@@ -153,7 +151,7 @@ index beb1b5a0..d0afc615 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -718,6 +837,9 @@ class Twitch(Plugin):
+@@ -718,6 +835,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -163,7 +161,7 @@ index beb1b5a0..d0afc615 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -737,6 +859,13 @@ class Twitch(Plugin):
+@@ -737,6 +857,12 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -172,12 +170,11 @@ index beb1b5a0..d0afc615 100644
 +                playlist_proxies=self.get_option("proxy-playlist"),
 +                excluded_channels=self.get_option("proxy-playlist-exclude"),
 +                fallback=self.get_option("proxy-playlist-fallback"),
-+                ttvlol=self.get_option("ttvlol"),
 +        )
  
          def method_factory(parent_method):
              def inner():
-@@ -900,7 +1029,14 @@ class Twitch(Plugin):
+@@ -900,7 +1026,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
