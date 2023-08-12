@@ -80,9 +80,9 @@ streamlink-ttvlol adds the following plugin arguments:
 
 |Argument                                |Example                                                                                    |Description|
 |:---------------------------------------|:------------------------------------------------------------------------------------------|:----------|
-|<pre/>`--twitch-proxy-playlist`         |<pre/>`--twitch-proxy-playlist=https://api.ttv.lol,https://eu.luminous.dev/live/[channel]` |Proxy playlist request through a server that supports the TTV.LOL API (or a server that doesn't with a custom URL, see [here](https://github.com/2bc4/streamlink-ttvlol/releases/tag/5.3.0-20230313)). It can also be pointed at multiple comma separated servers which will try each server in order until successful.
-|<pre/>`--twitch-proxy-playlist-exclude` |<pre/>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`                         |Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
-|<pre/>`--twitch-proxy-playlist-fallback`|<pre/>`--twitch-proxy-playlist-fallback`                                                   |Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
+|<pre/>`--twitch-proxy-playlist`         |<pre/>`--twitch-proxy-playlist=https://eu.luminous.dev`|Proxy playlist request through a server that supports the TTV.LOL API (or a server that doesn't with a custom URL, see [here](https://github.com/2bc4/streamlink-ttvlol/releases/tag/5.3.0-20230313)). It can also be pointed at multiple comma separated servers which will try each server in order until successful.
+|<pre/>`--twitch-proxy-playlist-exclude` |<pre/>`--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`|Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
+|<pre/>`--twitch-proxy-playlist-fallback`|<pre/>`--twitch-proxy-playlist-fallback`|Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
 
 ## Known compatible public proxy servers
 ~Official TTV.LOL server:~
