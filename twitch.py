@@ -278,13 +278,11 @@ class NoPlaylistProxyAvailable(Exception):
 
 
 class PlaylistProxyService:
-    def __init__(self, session, playlist_proxies, excluded_channels, fallback, ttvlol):
+    def __init__(self, session, playlist_proxies, excluded_channels, fallback):
         self.session = session
         self.playlist_proxies = playlist_proxies or []
         self.excluded_channels = map(str.lower, excluded_channels or [])
         self.fallback = fallback
-        if ttvlol:
-            self.playlist_proxies.insert(0, "https://api.ttv.lol")
 
     def _append_query_params(self, url):
         params = {
@@ -823,7 +821,7 @@ class TwitchClientIntegrity:
     "ttvlol",
     action="store_true",
     help="""
-        Alias for --twitch-proxy-playlist=https://api.ttv.lol
+        Deprecated and will be removed in a future release.
     """,
 )
 @pluginargument(
@@ -881,7 +879,6 @@ class Twitch(Plugin):
                 playlist_proxies=self.get_option("proxy-playlist"),
                 excluded_channels=self.get_option("proxy-playlist-exclude"),
                 fallback=self.get_option("proxy-playlist-fallback"),
-                ttvlol=self.get_option("ttvlol"),
         )
 
         def method_factory(parent_method):
