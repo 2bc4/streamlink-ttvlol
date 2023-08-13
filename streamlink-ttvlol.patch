@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index beb1b5a0..13d87efb 100644
+index a12b41be..fc095d3d 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -17,7 +17,7 @@ from datetime import datetime, timedelta
@@ -19,7 +19,7 @@ index beb1b5a0..13d87efb 100644
 +from streamlink.utils.args import comma_list, keyvalue
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
- from streamlink.utils.times import fromtimestamp, hours_minutes_seconds
+ from streamlink.utils.times import fromtimestamp, hours_minutes_seconds_float
 @@ -255,6 +255,70 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
@@ -155,7 +155,7 @@ index beb1b5a0..13d87efb 100644
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol d70fe487-master")
++        log.info("streamlink-ttvlol 19974436-master")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
