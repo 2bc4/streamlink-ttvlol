@@ -30,7 +30,7 @@ from streamlink.stream.http import HTTPStream
 from streamlink.utils.args import comma_list, keyvalue
 from streamlink.utils.parse import parse_json, parse_qsd
 from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
-from streamlink.utils.times import fromtimestamp, hours_minutes_seconds
+from streamlink.utils.times import fromtimestamp, hours_minutes_seconds_float
 from streamlink.utils.url import update_qsd
 
 
@@ -852,7 +852,7 @@ class Twitch(Plugin):
         self.clip_name = None
         self._checked_metadata = False
 
-        log.info("streamlink-ttvlol d70fe487-master")
+        log.info("streamlink-ttvlol 19974436-master")
         log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 
         if self.subdomain == "player":
@@ -1002,7 +1002,7 @@ class Twitch(Plugin):
         time_offset = self.params.get("t", 0)
         if time_offset:
             try:
-                time_offset = hours_minutes_seconds(time_offset)
+                time_offset = hours_minutes_seconds_float(time_offset)
             except ValueError:
                 time_offset = 0
 
