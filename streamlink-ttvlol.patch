@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index a12b41be..dd7ec3e8 100644
+index a12b41be..0dfd587f 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -11,13 +11,14 @@ $notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integr
@@ -204,7 +204,7 @@ index a12b41be..dd7ec3e8 100644
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol 19974436-master")
++        log.info("streamlink-ttvlol 6.1.0-20230816")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
