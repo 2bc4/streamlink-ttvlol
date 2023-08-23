@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index a12b41be..fc095d3d 100644
+index 5ea5ffcb..3c1e226e 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -17,7 +17,7 @@ from datetime import datetime, timedelta
@@ -11,16 +11,16 @@ index a12b41be..fc095d3d 100644
  
  from streamlink.exceptions import NoStreamsError, PluginError
  from streamlink.plugin import Plugin, pluginargument, pluginmatcher
-@@ -26,7 +26,7 @@ from streamlink.session import Streamlink
- from streamlink.stream.hls import HLSStream, HLSStreamReader, HLSStreamWorker, HLSStreamWriter
- from streamlink.stream.hls_playlist import M3U8, ByteRange, DateRange, ExtInf, Key, M3U8Parser, Map, load as load_hls_playlist
+@@ -36,7 +36,7 @@ from streamlink.stream.hls_playlist import (
+     parse_tag,
+ )
  from streamlink.stream.http import HTTPStream
 -from streamlink.utils.args import keyvalue
 +from streamlink.utils.args import comma_list, keyvalue
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
  from streamlink.utils.times import fromtimestamp, hours_minutes_seconds_float
-@@ -255,6 +255,70 @@ class UsherService:
+@@ -267,6 +267,70 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -91,7 +91,7 @@ index a12b41be..fc095d3d 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -698,6 +762,59 @@ class TwitchClientIntegrity:
+@@ -710,6 +774,59 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -151,17 +151,17 @@ index a12b41be..fc095d3d 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -718,6 +835,9 @@ class Twitch(Plugin):
+@@ -730,6 +847,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol 19974436-master")
++        log.info("streamlink-ttvlol 4631aeff-master")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -737,6 +857,12 @@ class Twitch(Plugin):
+@@ -749,6 +869,12 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -174,7 +174,7 @@ index a12b41be..fc095d3d 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -900,7 +1026,14 @@ class Twitch(Plugin):
+@@ -912,7 +1038,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
