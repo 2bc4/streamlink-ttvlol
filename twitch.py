@@ -2,6 +2,10 @@
 $description Global live-streaming and video hosting social platform owned by Amazon.
 $url twitch.tv
 $type live, vod
+$metadata id
+$metadata author
+$metadata category
+$metadata title
 $notes See the :ref:`Authentication <cli/plugins/twitch:Authentication>` docs on how to prevent ads.
 $notes Read more about :ref:`embedded ads <cli/plugins/twitch:Embedded ads>` here.
 $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` is supported.
@@ -847,7 +851,7 @@ class Twitch(Plugin):
         self.clip_name = None
         self._checked_metadata = False
 
-        log.info("streamlink-ttvlol 4631aeff-master")
+        log.info("streamlink-ttvlol 121ce978-master")
         log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 
         if self.subdomain == "player":
