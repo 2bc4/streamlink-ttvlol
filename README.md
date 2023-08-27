@@ -82,21 +82,23 @@ streamlink-ttvlol adds the following plugin arguments:
 
 Proxy playlist request through a server that supports the TTV.LOL API (or a server that doesn't with a custom URL, see [here](https://github.com/2bc4/streamlink-ttvlol/releases/tag/5.3.0-20230313)). It can also be pointed at multiple comma separated servers which will try each server in order until successful.
 
-Example: `--twitch-proxy-playlist=https://eu.luminous.dev`
+Example:
+
+    --twitch-proxy-playlist=https://eu.luminous.dev,https://as.luminous.dev,https://purpletv.cdn-perfprod.com/streamer/[channel]
 
 ---
 `--twitch-proxy-playlist-exclude`
 
 Can be used to exclude channels from being proxied (eg. you're subscribed to the channel and want to use your OAuth token to avoid ads instead)
 
-Example: `--twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming`
+Example:
+
+    --twitch-proxy-playlist-exclude=forsen,twitch,twitchgaming
 
 ---
 `--twitch-proxy-playlist-fallback`
 
 Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
-
-Example: `--twitch-proxy-playlist-fallback`
 
 ## Known compatible public proxy servers
 ~Official TTV.LOL server:~
@@ -119,4 +121,3 @@ If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink
 
 ## Chatterino
 If you're using [Chatterino](https://github.com/Chatterino/chatterino2) with Streamlink you'll need to add the above argument of your choosing to Settings -> External Tools -> Streamlink -> Additional options.
-
