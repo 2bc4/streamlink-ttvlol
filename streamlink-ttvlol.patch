@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 2cbb9329..ad3d2718 100644
+index e2c65d3c..26c91126 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -21,7 +21,7 @@ from datetime import datetime, timedelta
@@ -20,7 +20,7 @@ index 2cbb9329..ad3d2718 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
  from streamlink.utils.times import fromtimestamp, hours_minutes_seconds_float
-@@ -271,6 +271,70 @@ class UsherService:
+@@ -282,6 +282,70 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -91,7 +91,7 @@ index 2cbb9329..ad3d2718 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -714,6 +778,59 @@ class TwitchClientIntegrity:
+@@ -725,6 +789,59 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -151,17 +151,17 @@ index 2cbb9329..ad3d2718 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -734,6 +851,9 @@ class Twitch(Plugin):
+@@ -745,6 +862,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol 121ce978-master")
++        log.info("streamlink-ttvlol 2702c899-master")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -753,6 +873,12 @@ class Twitch(Plugin):
+@@ -764,6 +884,12 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -174,7 +174,7 @@ index 2cbb9329..ad3d2718 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -916,7 +1042,14 @@ class Twitch(Plugin):
+@@ -927,7 +1053,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
