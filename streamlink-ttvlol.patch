@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index e2c65d3c..26c91126 100644
+index e2c65d3c..5a8781ef 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -21,7 +21,7 @@ from datetime import datetime, timedelta
@@ -20,7 +20,7 @@ index e2c65d3c..26c91126 100644
  from streamlink.utils.parse import parse_json, parse_qsd
  from streamlink.utils.random import CHOICES_ALPHA_NUM, random_token
  from streamlink.utils.times import fromtimestamp, hours_minutes_seconds_float
-@@ -282,6 +282,70 @@ class UsherService:
+@@ -282,6 +282,67 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -69,7 +69,6 @@ index e2c65d3c..26c91126 100644
 +
 +            if url == proxy:
 +                url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
-+                self.session.http.headers["x-donate-to"] = "https://ttv.lol/donate"
 +            elif not parsed_url.query:
 +                url = self._append_query_params(url)
 +
@@ -78,8 +77,6 @@ index e2c65d3c..26c91126 100644
 +                return TwitchHLSStream.parse_variant_playlist(self.session, url, **kwargs)
 +            except OSError as err:
 +                log.error(err)
-+            finally:
-+                self.session.http.headers.pop("x-donate-to", None)
 +
 +        if self.fallback:
 +            log.info("No playlist proxies available, falling back to Twitch servers")
@@ -91,7 +88,7 @@ index e2c65d3c..26c91126 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -725,6 +789,59 @@ class TwitchClientIntegrity:
+@@ -725,6 +786,59 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -151,7 +148,7 @@ index e2c65d3c..26c91126 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -745,6 +862,9 @@ class Twitch(Plugin):
+@@ -745,6 +859,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -161,7 +158,7 @@ index e2c65d3c..26c91126 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -764,6 +884,12 @@ class Twitch(Plugin):
+@@ -764,6 +881,12 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -174,7 +171,7 @@ index e2c65d3c..26c91126 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -927,7 +1053,14 @@ class Twitch(Plugin):
+@@ -927,7 +1050,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:

@@ -327,7 +327,6 @@ class PlaylistProxyService:
 
             if url == proxy:
                 url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
-                self.session.http.headers["x-donate-to"] = "https://ttv.lol/donate"
             elif not parsed_url.query:
                 url = self._append_query_params(url)
 
@@ -336,8 +335,6 @@ class PlaylistProxyService:
                 return TwitchHLSStream.parse_variant_playlist(self.session, url, **kwargs)
             except OSError as err:
                 log.error(err)
-            finally:
-                self.session.http.headers.pop("x-donate-to", None)
 
         if self.fallback:
             log.info("No playlist proxies available, falling back to Twitch servers")
