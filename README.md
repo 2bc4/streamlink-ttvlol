@@ -101,9 +101,6 @@ Example:
 Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
 
 ## Known compatible public proxy servers
-~Official TTV.LOL server:~
-- ~`https://api.ttv.lol`~ (Server is refusing requests)
-
 Official [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) servers:
 - `https://eu.luminous.dev` (Europe)
 - `https://as.luminous.dev` (Asia)
