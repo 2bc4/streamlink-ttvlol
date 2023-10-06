@@ -84,7 +84,7 @@ Proxy playlist request through a server that supports the TTV.LOL API (or a serv
 
 Example:
 
-    --twitch-proxy-playlist=https://eu.luminous.dev,https://as.luminous.dev,https://purpletv.cdn-perfprod.com/streamer/[channel]
+    --twitch-proxy-playlist=https://eu.luminous.dev,https://lb-eu.cdn-perfprod.com
 
 ---
 `--twitch-proxy-playlist-exclude`
