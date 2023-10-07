@@ -44,6 +44,7 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
+STREAMLINK_TTVLOL_VERSION = "a13b12dc-master"
 
 
 @dataclass
@@ -812,7 +813,7 @@ class Twitch(Plugin):
         self.clip_name = None
         self._checked_metadata = False
 
-        log.info("streamlink-ttvlol a13b12dc-master " + f"({self.session.version})")
+        log.info(f"streamlink-ttvlol {STREAMLINK_TTVLOL_VERSION} ({self.session.version})")
         log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 
         if self.subdomain == "player":
