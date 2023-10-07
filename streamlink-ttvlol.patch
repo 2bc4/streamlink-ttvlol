@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 453b77cb..26e32c54 100644
+index 453b77cb..8dbfc90d 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -23,7 +23,7 @@ from datetime import datetime, timedelta
@@ -152,7 +152,7 @@ index 453b77cb..26e32c54 100644
          self.clip_name = None
          self._checked_metadata = False
  
-+        log.info("streamlink-ttvlol a13b12dc-master")
++        log.info("streamlink-ttvlol a13b12dc-master " + f"({self.session.version})")
 +        log.info("Please report issues to https://github.com/2bc4/streamlink-ttvlol/issues")
 +
          if self.subdomain == "player":
