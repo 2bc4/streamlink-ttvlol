@@ -789,20 +789,6 @@ class TwitchClientIntegrity:
         Fallback to Twitch servers if all requests to playlist proxies fail.
     """,
 )
-@pluginargument(
-    "ttvlol",
-    action="store_true",
-    help="""
-        Deprecated and will be removed in a future release.
-    """,
-)
-@pluginargument(
-    "reexec-on-ad",
-    action="store_true",
-    help="""
-        Deprecated and will be removed in a future release.
-    """,
-)
 class Twitch(Plugin):
     _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
 

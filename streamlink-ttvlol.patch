@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index e74e901a..547ca55f 100644
+index e74e901a..86c5985c 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -23,7 +23,7 @@ from datetime import datetime, timedelta
@@ -96,7 +96,7 @@ index e74e901a..547ca55f 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -688,6 +750,59 @@ class TwitchClientIntegrity:
+@@ -688,6 +750,45 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -139,24 +139,10 @@ index e74e901a..547ca55f 100644
 +        Fallback to Twitch servers if all requests to playlist proxies fail.
 +    """,
 +)
-+@pluginargument(
-+    "ttvlol",
-+    action="store_true",
-+    help="""
-+        Deprecated and will be removed in a future release.
-+    """,
-+)
-+@pluginargument(
-+    "reexec-on-ad",
-+    action="store_true",
-+    help="""
-+        Deprecated and will be removed in a future release.
-+    """,
-+)
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -708,6 +823,9 @@ class Twitch(Plugin):
+@@ -708,6 +809,9 @@ class Twitch(Plugin):
          self.clip_name = None
          self._checked_metadata = False
  
@@ -166,7 +152,7 @@ index e74e901a..547ca55f 100644
          if self.subdomain == "player":
              # pop-out player
              if self.params.get("video"):
-@@ -727,6 +845,12 @@ class Twitch(Plugin):
+@@ -727,6 +831,12 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -179,7 +165,7 @@ index e74e901a..547ca55f 100644
  
          def method_factory(parent_method):
              def inner():
-@@ -901,7 +1025,14 @@ class Twitch(Plugin):
+@@ -901,7 +1011,14 @@ class Twitch(Plugin):
          elif self.clip_name:
              return self._get_clips()
          elif self.channel:
