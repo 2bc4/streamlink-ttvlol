@@ -10,7 +10,7 @@ Currently not compatible with TTV-LOL-PRO v2 proxies.
 
 [Windows](#windows), [Linux](#linux), [MacOS](#macos).
 
-If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py).
+If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). <sub>(If you're not using git Streamlink please use the twitch.py from the releases page. The twitch.py from the master branch tracks Streamlink master and may break on stable Streamlink releases.)</sub>
 
 After installation you will need to point Streamlink at a playlist proxy server with [plugin arguments](#arguments).
 
