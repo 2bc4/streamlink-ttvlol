@@ -103,6 +103,7 @@ Enable if Streamlink should fallback to Twitch servers if all requests to playli
 ## Known compatible public proxy servers
 Official [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) servers:
 - `https://eu.luminous.dev` (Europe)
+- `https://eu2.luminous.dev` (Europe 2)
 - `https://as.luminous.dev` (Asia)
 
 Official [TTV-LOL-PRO](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032) v1 servers:
