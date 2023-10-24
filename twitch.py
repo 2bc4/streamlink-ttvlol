@@ -261,11 +261,8 @@ class PlaylistProxyService:
 
     def _append_query_params(self, url):
         params = {
-            "player": "twitchweb",
-            "type": "any",
             "allow_source": "true",
             "allow_audio_only": "true",
-            "allow_spectre": "false",
             "fast_bread": "true",
         }
         req = self.session.http.prepare_new_request(url=url, params=params)
