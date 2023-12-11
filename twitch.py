@@ -54,7 +54,7 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "173b8c93-master"
+STREAMLINK_TTVLOL_VERSION = "a169d5b8-master"
 
 
 @dataclass
@@ -546,18 +546,6 @@ class TwitchAPI:
             ),
         ))
 
-    def stream_metadata(self, channel):
-        query = self._gql_persisted_query(
-            "StreamMetadata",
-            "1c719a40e481453e5c48d9bb585d971b8b372f8ebb105b17076722264dfa5b3e",
-            channelLogin=channel,
-        )
-
-        return self.call(query, schema=validate.Schema(
-            {"data": {"user": {"stream": {"type": str}}}},
-            validate.get(("data", "user", "stream")),
-        ))
-
 
 class TwitchClientIntegrity:
     URL_P_SCRIPT = "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js"
@@ -613,8 +601,8 @@ class TwitchClientIntegrity:
         headers: Mapping[str, str],
         device_id: str,
     ) -> Optional[Tuple[str, int]]:
-        from streamlink.webbrowser.cdp import CDPClient, CDPClientSession, devtools
-        from streamlink.webbrowser.exceptions import WebbrowserError
+        from streamlink.webbrowser.cdp import CDPClient, CDPClientSession, devtools  # noqa: PLC0415
+        from streamlink.webbrowser.exceptions import WebbrowserError  # noqa: PLC0415
 
         url = f"https://www.twitch.tv/{channel}"
         js_get_integrity_token = cls.JS_INTEGRITY_TOKEN \
@@ -699,7 +687,7 @@ class TwitchClientIntegrity:
 @pluginargument(
     "disable-reruns",
     action="store_true",
-    help="Do not open the stream if the target channel is currently broadcasting a rerun.",
+    help=argparse.SUPPRESS,
 )
 @pluginargument(
     "low-latency",
@@ -915,24 +903,7 @@ class Twitch(Plugin):
 
         return sig, token, restricted_bitrates
 
-    def _check_for_rerun(self):
-        if not self.options.get("disable_reruns"):
-            return False
-
-        try:
-            stream = self.api.stream_metadata(self.channel)
-            if stream["type"] != "live":
-                log.info("Reruns were disabled by command line option")
-                return True
-        except (PluginError, TypeError):
-            pass
-
-        return False
-
     def _get_hls_streams_live(self):
-        if self._check_for_rerun():
-            return
-
         # only get the token once the channel has been resolved
         log.debug(f"Getting live HLS streams for {self.channel}")
         self.session.http.headers.update({
@@ -965,6 +936,10 @@ class Twitch(Plugin):
                 self.session,
                 url,
                 start_offset=time_offset,
+                # Check if the media playlists are accessible:
+                # This is a workaround for checking the GQL API for the channel's live status,
+                # which can be delayed by up to a minute.
+                check_streams=True,
                 disable_ads=self.get_option("disable-ads"),
                 low_latency=self.get_option("low-latency"),
                 **extra_params,
@@ -973,7 +948,7 @@ class Twitch(Plugin):
             # TODO: fix the "err" attribute set by HTTPSession.request()
             orig = getattr(err, "err", None)
             if isinstance(orig, HTTPError) and orig.response.status_code >= 400:
-                error = None
+                # The playlist's error response may include JSON data with an error message
                 with suppress(PluginError):
                     error = validate.Schema(
                         validate.parse_json(),
@@ -983,7 +958,10 @@ class Twitch(Plugin):
                         }],
                         validate.get((0, "error")),
                     ).validate(orig.response.text)
-                log.error(error or "Could not access HLS playlist")
+                    # Only log error messages if the channel is actually live
+                    if self.get_id():
+                        log.error(error or "Could not access HLS playlist")
+                # Don't raise and simply return no streams on 4xx/5xx playlist responses
                 return
             raise PluginError(err) from err
 
