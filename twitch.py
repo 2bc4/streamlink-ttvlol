@@ -54,7 +54,7 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "a169d5b8-master"
+STREAMLINK_TTVLOL_VERSION = "36a2af29-master"
 
 
 @dataclass
@@ -624,7 +624,12 @@ class TwitchClientIntegrity:
                     return await client_session.evaluate(js_get_integrity_token, timeout=eval_timeout)
 
         try:
-            client_integrity: Optional[str] = CDPClient.launch(session, acquire_client_integrity_token)
+            client_integrity: Optional[str] = CDPClient.launch(
+                session,
+                acquire_client_integrity_token,
+                # headless mode gets detected by Twitch, so we have to disable it regardless the user config
+                headless=False,
+            )
         except WebbrowserError as err:
             log.error(f"{type(err).__name__}: {err}")
             return None
