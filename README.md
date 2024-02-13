@@ -101,19 +101,19 @@ Example:
 Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
 
 ## Known compatible public proxy servers
-Official [luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) servers:
-- `https://eu.luminous.dev` (Europe)
-- `https://eu2.luminous.dev` (Europe 2)
-- `https://as.luminous.dev` (Asia)
-
-Official [TTV-LOL-PRO](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032) v1 servers:
+[TTV-LOL-PRO](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032) v1 servers:
 - `https://lb-eu.cdn-perfprod.com` (Europe)
 - `https://lb-eu2.cdn-perfprod.com` (Europe 2)
-- `https://lb-eu3.cdn-perfprod.com` (Europe 3)
 - `https://lb-eu4.cdn-perfprod.com` (Europe 4)
 - `https://lb-eu5.cdn-perfprod.com` (Europe 5)
 - `https://lb-na.cdn-perfprod.com` (NA)
 - `https://lb-as.cdn-perfprod.com` (Asia)
+- `https://lb-sa.cdn-perfprod.com` (SA)
+
+[luminous-ttv](https://github.com/AlyoshaVasilieva/luminous-ttv) servers:
+- `https://eu.luminous.dev` (Europe)
+- `https://eu2.luminous.dev` (Europe 2)
+- `https://as.luminous.dev` (Asia)
 
 ## streamlink-twitch-gui
 If you're using [streamlink-twitch-gui](https://github.com/streamlink/streamlink-twitch-gui) then you'll need to check the "Enable advanced settings and features" box on the `Main` tab in settings. You can then add the above argument of your choosing to the "Custom parameters" box on the `Streaming` tab.
