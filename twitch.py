@@ -53,7 +53,7 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "d5aa26f6-master"
+STREAMLINK_TTVLOL_VERSION = "6.7.3-20240415"
 
 
 @dataclass
