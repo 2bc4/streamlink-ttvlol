@@ -53,7 +53,7 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "d5aa26f6-master"
+STREAMLINK_TTVLOL_VERSION = "63c6d030-master"
 
 
 @dataclass
@@ -600,7 +600,7 @@ class TwitchClientIntegrity:
         headers: Mapping[str, str],
         device_id: str,
     ) -> Optional[Tuple[str, int]]:
-        from exceptiongroup import BaseExceptionGroup  # noqa: PLC0415, I001
+        from streamlink.compat import BaseExceptionGroup  # noqa: PLC0415
         from streamlink.webbrowser.cdp import CDPClient, CDPClientSession, devtools  # noqa: PLC0415
 
         url = f"https://www.twitch.tv/{channel}"
