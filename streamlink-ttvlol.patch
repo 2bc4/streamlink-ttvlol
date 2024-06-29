@@ -1,25 +1,25 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 06278b09..924699ce 100644
+index 129caa00..062798d0 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
-@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
+@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
  from json import dumps as json_dumps
  from random import random
- from typing import ClassVar, Mapping, Optional, Tuple, Type
+ from typing import ClassVar, Deque, List, Mapping, Optional, Tuple, Type
 -from urllib.parse import urlparse
 +from urllib.parse import quote, urlparse
  
  from requests.exceptions import HTTPError
  
-@@ -53,6 +53,7 @@ from streamlink.utils.url import update_qsd
+@@ -55,6 +55,7 @@ from streamlink.utils.url import update_qsd
  log = logging.getLogger(__name__)
  
  LOW_LATENCY_MAX_LIVE_EDGE = 2
-+STREAMLINK_TTVLOL_VERSION = "22519a70-master"
++STREAMLINK_TTVLOL_VERSION = "29a3107e-master"
  
  
  @dataclass
-@@ -272,6 +273,64 @@ class UsherService:
+@@ -296,6 +297,64 @@ class UsherService:
          return self._create_url(f"/vod/{video_id}", **extra_params)
  
  
@@ -84,7 +84,7 @@ index 06278b09..924699ce 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -723,6 +782,45 @@ class TwitchClientIntegrity:
+@@ -747,6 +806,45 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -130,7 +130,7 @@ index 06278b09..924699ce 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -735,6 +833,9 @@ class Twitch(Plugin):
+@@ -759,6 +857,9 @@ class Twitch(Plugin):
      def __init__(self, *args, **kwargs):
          super().__init__(*args, **kwargs)
  
@@ -140,7 +140,7 @@ index 06278b09..924699ce 100644
          params = parse_qsd(urlparse(self.url).query)
  
          self.channel = self.match["channel"] if self.matches["live"] else None
-@@ -756,6 +857,12 @@ class Twitch(Plugin):
+@@ -780,6 +881,12 @@ class Twitch(Plugin):
              access_token_param=self.get_option("access-token-param"),
          )
          self.usher = UsherService(session=self.session)
@@ -153,7 +153,7 @@ index 06278b09..924699ce 100644
  
          self._checked_metadata = False
  
-@@ -915,7 +1022,14 @@ class Twitch(Plugin):
+@@ -939,7 +1046,14 @@ class Twitch(Plugin):
          elif self.clip_id:
              return self._get_clips()
          elif self.channel:
