@@ -104,6 +104,7 @@ Enable if Streamlink should fallback to Twitch servers if all requests to playli
 [TTV-LOL-PRO](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032) v1 servers:
 - `https://lb-eu.cdn-perfprod.com` (Europe)
 - `https://lb-eu2.cdn-perfprod.com` (Europe 2)
+- `https://lb-eu3.cdn-perfprod.com` (Europe 3, using Russia-only proxies)
 - `https://lb-eu4.cdn-perfprod.com` (Europe 4)
 - `https://lb-eu5.cdn-perfprod.com` (Europe 5)
 - `https://lb-na.cdn-perfprod.com` (NA)
