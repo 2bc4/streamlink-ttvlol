@@ -2,6 +2,7 @@
 $description Global live-streaming and video hosting social platform owned by Amazon.
 $url twitch.tv
 $type live, vod
+$webbrowser Required for getting a new :ref:`client-integrity token <cli/plugins/twitch:Client-integrity token>`.
 $metadata id
 $metadata author
 $metadata category
@@ -13,7 +14,6 @@ $notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integr
 """
 
 import argparse
-import base64
 import logging
 import math
 import re
@@ -55,7 +55,7 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "29a3107e-master"
+STREAMLINK_TTVLOL_VERSION = "b7afcdeb-master"
 
 
 @dataclass
@@ -275,8 +275,8 @@ class UsherService:
 
         return req.url
 
-    def channel(self, channel, **extra_params):
-        try:
+    def channel(self, channel: str, **extra_params) -> str:
+        with suppress(PluginError):
             extra_params_debug = validate.Schema(
                 validate.get("token"),
                 validate.parse_json(),
@@ -289,11 +289,10 @@ class UsherService:
                 },
             ).validate(extra_params)
             log.debug(f"{extra_params_debug!r}")
-        except PluginError:
-            pass
-        return self._create_url(f"/api/channel/hls/{channel}.m3u8", **extra_params)
 
-    def video(self, video_id, **extra_params):
+        return self._create_url(f"/api/channel/hls/{channel.lower()}.m3u8", **extra_params)
+
+    def video(self, video_id: str, **extra_params) -> str:
         return self._create_url(f"/vod/{video_id}", **extra_params)
 
 
@@ -677,12 +676,7 @@ class TwitchClientIntegrity:
                     return await client_session.evaluate(js_get_integrity_token, timeout=eval_timeout)
 
         try:
-            client_integrity = CDPClient.launch(
-                session,
-                acquire_client_integrity_token,
-                # headless mode gets detected by Twitch, so we have to disable it regardless the user config
-                headless=False,
-            )
+            client_integrity = CDPClient.launch(session, acquire_client_integrity_token)
         except BaseExceptionGroup:
             log.exception("Failed acquiring client integrity token")
         except Exception as err:
@@ -691,31 +685,14 @@ class TwitchClientIntegrity:
         if not client_integrity:
             return None
 
-        token, expiration = parse_json(client_integrity, schema=validate.Schema(
+        schema = validate.Schema(
+            validate.parse_json(),
             {"token": str, "expiration": int},
             validate.union_get("token", "expiration"),
-        ))
-        is_bad_bot = cls.decode_client_integrity_token(token, schema=validate.Schema(
-            {"is_bad_bot": str},
-            validate.get("is_bad_bot"),
-            validate.transform(lambda val: val.lower() != "false"),
-        ))
-        log.info(f"Is bad bot? {is_bad_bot}")
-        if is_bad_bot:
-            return None
+        )
+        token, expiration = schema.validate(client_integrity)
 
         return token, expiration / 1000
-
-    @staticmethod
-    def decode_client_integrity_token(data: str, schema: Optional[validate.Schema] = None):
-        if not data.startswith("v4.public."):
-            raise PluginError("Invalid client-integrity token format")
-        token = data[len("v4.public."):].replace("-", "+").replace("_", "/")
-        token += "=" * ((4 - (len(token) % 4)) % 4)
-        token = base64.b64decode(token.encode())[:-64].decode()
-        log.debug(f"Client-Integrity token: {token}")
-
-        return parse_json(token, exception=PluginError, schema=schema)
 
 
 @pluginmatcher(
@@ -800,6 +777,11 @@ class TwitchClientIntegrity:
 
         Can be repeated to add multiple parameters.
     """,
+)
+@pluginargument(
+    "force-client-integrity",
+    action="store_true",
+    help="Don't attempt requesting the streaming access token without a client-integrity token.",
 )
 @pluginargument(
     "purge-client-integrity",
@@ -945,8 +927,12 @@ class Twitch(Plugin):
         return device_id, token
 
     def _access_token(self, is_live, channel_or_vod):
+        response = ""
+        data = (None, None)
+
         # try without a client-integrity token first (the web player did the same on 2023-05-31)
-        response, *data = self.api.access_token(is_live, channel_or_vod)
+        if not self.options.get("force-client-integrity"):
+            response, *data = self.api.access_token(is_live, channel_or_vod)
 
         # try again with a client-integrity token if the API response was erroneous
         if response != "token":
