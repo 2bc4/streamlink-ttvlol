@@ -3,14 +3,14 @@
 
 [Streamlink](https://streamlink.github.io) Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL-like APIs can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist or switch between proxies.
 
-Currently not compatible with TTV-LOL-PRO v2 proxies.
+Not compatible with TTV-LOL-PRO v2 proxies.
 
 ## Installation
 ***Follow the instructions below for your specific operating system.***
 
 [Windows](#windows), [Linux](#linux), [MacOS](#macos).
 
-If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). <sub>***(If you're not using git Streamlink please use the twitch.py from the releases page. The twitch.py from the master branch tracks Streamlink master and may break on stable Streamlink releases.)***</sub>
+If you wish to install manually, you can get the latest release [here](https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py). <sub>***(If you're not using git Streamlink please try the twitch.py from the releases page first. The twitch.py from the master branch tracks Streamlink master and may break on stable Streamlink releases.)***</sub>
 
 After installation you will need to point Streamlink at a playlist proxy server with [plugin arguments](#arguments).
 
