@@ -13,18 +13,21 @@ $notes :ref:`Low latency streaming <cli/plugins/twitch:Low latency streaming>` i
 $notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integrity token>` on streaming access token failure.
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 import math
 import re
 import sys
 from collections import deque
+from collections.abc import Mapping
 from contextlib import suppress
 from dataclasses import dataclass, replace as dataclass_replace
 from datetime import datetime, timedelta
 from json import dumps as json_dumps
 from random import random
-from typing import ClassVar, Deque, List, Mapping, Optional, Tuple, Type
+from typing import ClassVar
 from urllib.parse import quote, urlparse
 
 from requests.exceptions import HTTPError
@@ -55,7 +58,7 @@ from streamlink.utils.url import update_qsd
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "b7afcdeb-master"
+STREAMLINK_TTVLOL_VERSION = "98991c15-master"
 
 
 @dataclass
@@ -67,12 +70,12 @@ class TwitchHLSSegment(HLSSegment):
 class TwitchM3U8(M3U8[TwitchHLSSegment, HLSPlaylist]):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.dateranges_ads: List[DateRange] = []
+        self.dateranges_ads: list[DateRange] = []
 
 
 class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
-    __m3u8__: ClassVar[Type[TwitchM3U8]] = TwitchM3U8
-    __segment__: ClassVar[Type[TwitchHLSSegment]] = TwitchHLSSegment
+    __m3u8__: ClassVar[type[TwitchM3U8]] = TwitchM3U8
+    __segment__: ClassVar[type[TwitchHLSSegment]] = TwitchHLSSegment
 
     @parse_tag("EXT-X-TWITCH-LIVE-SEQUENCE")
     def parse_ext_x_twitch_live_sequence(self, value):
@@ -136,16 +139,16 @@ class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
             and not segment.ad
             and self.m3u8.segments
             and not self.m3u8.segments[-1].ad
-        ):
+        ):  # fmt: skip
             segment.discontinuity = False
 
         return segment
 
-    def _is_segment_ad(self, date: Optional[datetime], title: Optional[str] = None) -> bool:
+    def _is_segment_ad(self, date: datetime | None, title: str | None = None) -> bool:
         return (
             title is not None and "Amazon" in title
             or any(self.m3u8.is_date_in_daterange(date, daterange) for daterange in self.m3u8.dateranges_ads)
-        )
+        )  # fmt: skip
 
     @staticmethod
     def _is_daterange_ad(daterange: DateRange) -> bool:
@@ -157,13 +160,13 @@ class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
 
 
 class TwitchHLSStreamWorker(HLSStreamWorker):
-    reader: "TwitchHLSStreamReader"
-    writer: "TwitchHLSStreamWriter"
-    stream: "TwitchHLSStream"
+    reader: TwitchHLSStreamReader
+    writer: TwitchHLSStreamWriter
+    stream: TwitchHLSStream
 
     def __init__(self, reader, *args, **kwargs) -> None:
         self.had_content: bool = False
-        self.logged_ads: Deque[str] = deque(maxlen=10)
+        self.logged_ads: deque[str] = deque(maxlen=10)
         super().__init__(reader, *args, **kwargs)
 
     def _playlist_reload_time(self, playlist: TwitchM3U8):  # type: ignore[override]
@@ -199,10 +202,10 @@ class TwitchHLSStreamWorker(HLSStreamWorker):
             if not daterange_ads.duration:  # pragma: no cover
                 continue
 
-            ads_id: Optional[str] = (
+            ads_id: str | None = (
                 daterange_ads.x.get("X-TV-TWITCH-AD-COMMERCIAL-ID")
                 or daterange_ads.x.get("X-TV-TWITCH-AD-ROLL-TYPE")
-            )
+            )  # fmt: skip
             if not ads_id or ads_id in self.logged_ads:
                 continue
             self.logged_ads.append(ads_id)
@@ -219,8 +222,8 @@ class TwitchHLSStreamWorker(HLSStreamWorker):
 
 
 class TwitchHLSStreamWriter(HLSStreamWriter):
-    reader: "TwitchHLSStreamReader"
-    stream: "TwitchHLSStream"
+    reader: TwitchHLSStreamReader
+    stream: TwitchHLSStream
 
     def should_filter_segment(self, segment: TwitchHLSSegment) -> bool:  # type: ignore[override]
         return self.stream.disable_ads and segment.ad
@@ -230,11 +233,11 @@ class TwitchHLSStreamReader(HLSStreamReader):
     __worker__ = TwitchHLSStreamWorker
     __writer__ = TwitchHLSStreamWriter
 
-    worker: "TwitchHLSStreamWorker"
-    writer: "TwitchHLSStreamWriter"
-    stream: "TwitchHLSStream"
+    worker: TwitchHLSStreamWorker
+    writer: TwitchHLSStreamWriter
+    stream: TwitchHLSStream
 
-    def __init__(self, stream: "TwitchHLSStream"):
+    def __init__(self, stream: TwitchHLSStream):
         if stream.disable_ads:
             log.info("Will skip ad segments")
         if stream.low_latency:
@@ -391,13 +394,20 @@ class TwitchAPI:
 
     @staticmethod
     def parse_token(tokenstr):
-        return parse_json(tokenstr, schema=validate.Schema(
-            {"chansub": {"restricted_bitrates": validate.all(
-                [str],
-                validate.filter(lambda n: not re.match(r"(.+_)?archives|live|chunked", n)),
-            )}},
-            validate.get(("chansub", "restricted_bitrates")),
-        ))
+        return parse_json(
+            tokenstr,
+            schema=validate.Schema(
+                {
+                    "chansub": {
+                        "restricted_bitrates": validate.all(
+                            [str],
+                            validate.filter(lambda n: not re.match(r"(.+_)?archives|live|chunked", n)),
+                        ),
+                    },
+                },
+                validate.get(("chansub", "restricted_bitrates")),
+            ),
+        )
 
     # GraphQL API calls
 
@@ -409,25 +419,32 @@ class TwitchAPI:
             videoID=video_id,
         )
 
-        return self.call(query, schema=validate.Schema(
-            {"data": {"video": {
-                "id": str,
-                "owner": {
-                    "displayName": str,
+        return self.call(
+            query,
+            schema=validate.Schema(
+                {
+                    "data": {
+                        "video": {
+                            "id": str,
+                            "owner": {
+                                "displayName": str,
+                            },
+                            "title": str,
+                            "game": {
+                                "displayName": str,
+                            },
+                        },
+                    },
                 },
-                "title": str,
-                "game": {
-                    "displayName": str,
-                },
-            }}},
-            validate.get(("data", "video")),
-            validate.union_get(
-                "id",
-                ("owner", "displayName"),
-                ("game", "displayName"),
-                "title",
+                validate.get(("data", "video")),
+                validate.union_get(
+                    "id",
+                    ("owner", "displayName"),
+                    ("game", "displayName"),
+                    "title",
+                ),
             ),
-        ))
+        )
 
     def metadata_channel(self, channel):
         queries = [
@@ -444,34 +461,45 @@ class TwitchAPI:
             ),
         ]
 
-        return self.call(queries, schema=validate.Schema(
-            [
-                validate.all(
-                    {"data": {"userOrError": {
-                        "displayName": str,
-                    }}},
-                ),
-                validate.all(
-                    {"data": {"user": {
-                        "lastBroadcast": {
-                            "title": str,
-                        },
-                        "stream": {
-                            "id": str,
-                            "game": {
-                                "name": str,
+        return self.call(
+            queries,
+            schema=validate.Schema(
+                [
+                    validate.all(
+                        {
+                            "data": {
+                                "userOrError": {
+                                    "displayName": str,
+                                },
                             },
                         },
-                    }}},
+                    ),
+                    validate.all(
+                        {
+                            "data": {
+                                "user": {
+                                    "lastBroadcast": {
+                                        "title": str,
+                                    },
+                                    "stream": {
+                                        "id": str,
+                                        "game": {
+                                            "name": str,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ),
+                ],
+                validate.union_get(
+                    (1, "data", "user", "stream", "id"),
+                    (0, "data", "userOrError", "displayName"),
+                    (1, "data", "user", "stream", "game", "name"),
+                    (1, "data", "user", "lastBroadcast", "title"),
                 ),
-            ],
-            validate.union_get(
-                (1, "data", "user", "stream", "id"),
-                (0, "data", "userOrError", "displayName"),
-                (1, "data", "user", "stream", "game", "name"),
-                (1, "data", "user", "lastBroadcast", "title"),
             ),
-        ))
+        )
 
     def metadata_clips(self, clipname):
         queries = [
@@ -487,30 +515,37 @@ class TwitchAPI:
             ),
         ]
 
-        return self.call(queries, schema=validate.Schema(
-            [
-                validate.all(
-                    {"data": {"clip": {
-                        "id": str,
-                        "broadcaster": {"displayName": str},
-                        "game": {"name": str},
-                    }}},
-                    validate.get(("data", "clip")),
+        return self.call(
+            queries,
+            schema=validate.Schema(
+                [
+                    validate.all(
+                        {
+                            "data": {
+                                "clip": {
+                                    "id": str,
+                                    "broadcaster": {"displayName": str},
+                                    "game": {"name": str},
+                                },
+                            },
+                        },
+                        validate.get(("data", "clip")),
+                    ),
+                    validate.all(
+                        {"data": {"clip": {"title": str}}},
+                        validate.get(("data", "clip")),
+                    ),
+                ],
+                validate.union_get(
+                    (0, "id"),
+                    (0, "broadcaster", "displayName"),
+                    (0, "game", "name"),
+                    (1, "title"),
                 ),
-                validate.all(
-                    {"data": {"clip": {"title": str}}},
-                    validate.get(("data", "clip")),
-                ),
-            ],
-            validate.union_get(
-                (0, "id"),
-                (0, "broadcaster", "displayName"),
-                (0, "game", "name"),
-                (1, "title"),
             ),
-        ))
+        )
 
-    def access_token(self, is_live, channel_or_vod, client_integrity: Optional[Tuple[str, str]] = None):
+    def access_token(self, is_live, channel_or_vod, client_integrity: tuple[str, str] | None = None):
         query = self._gql_persisted_query(
             "PlaybackAccessToken",
             "0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712",
@@ -532,36 +567,41 @@ class TwitchAPI:
         if client_integrity:
             headers["Device-Id"], headers["Client-Integrity"] = client_integrity
 
-        return self.call(query, acceptable_status=(200, 400, 401, 403), headers=headers, schema=validate.Schema(
-            validate.any(
-                validate.all(
-                    {"errors": [{"message": str}]},
-                    validate.get(("errors", 0, "message")),
-                    validate.transform(lambda data: ("error", None, data)),
-                ),
-                validate.all(
-                    {"error": str, "message": str},
-                    validate.union_get("error", "message"),
-                    validate.transform(lambda data: ("error", *data)),
-                ),
-                validate.all(
-                    {
-                        "data": validate.any(
-                            validate.all(
-                                {"streamPlaybackAccessToken": subschema},
-                                validate.get("streamPlaybackAccessToken"),
+        return self.call(
+            query,
+            acceptable_status=(200, 400, 401, 403),
+            headers=headers,
+            schema=validate.Schema(
+                validate.any(
+                    validate.all(
+                        {"errors": [{"message": str}]},
+                        validate.get(("errors", 0, "message")),
+                        validate.transform(lambda data: ("error", None, data)),
+                    ),
+                    validate.all(
+                        {"error": str, "message": str},
+                        validate.union_get("error", "message"),
+                        validate.transform(lambda data: ("error", *data)),
+                    ),
+                    validate.all(
+                        {
+                            "data": validate.any(
+                                validate.all(
+                                    {"streamPlaybackAccessToken": subschema},
+                                    validate.get("streamPlaybackAccessToken"),
+                                ),
+                                validate.all(
+                                    {"videoPlaybackAccessToken": subschema},
+                                    validate.get("videoPlaybackAccessToken"),
+                                ),
                             ),
-                            validate.all(
-                                {"videoPlaybackAccessToken": subschema},
-                                validate.get("videoPlaybackAccessToken"),
-                            ),
-                        ),
-                    },
-                    validate.get("data"),
-                    validate.transform(lambda data: ("token", *data) if data is not None else ("token", None, None)),
+                        },
+                        validate.get("data"),
+                        validate.transform(lambda data: ("token", *data) if data is not None else ("token", None, None)),
+                    ),
                 ),
             ),
-        ))
+        )
 
     def clips(self, clipname):
         query = self._gql_persisted_query(
@@ -570,31 +610,42 @@ class TwitchAPI:
             slug=clipname,
         )
 
-        return self.call(query, schema=validate.Schema(
-            {"data": {"clip": {
-                "playbackAccessToken": {
-                    "signature": str,
-                    "value": str,
-                },
-                "videoQualities": [validate.all(
-                    {
-                        "frameRate": validate.transform(int),
-                        "quality": str,
-                        "sourceURL": validate.url(),
+        return self.call(
+            query,
+            schema=validate.Schema(
+                {
+                    "data": {
+                        "clip": {
+                            "playbackAccessToken": {
+                                "signature": str,
+                                "value": str,
+                            },
+                            "videoQualities": [
+                                validate.all(
+                                    {
+                                        "frameRate": validate.transform(int),
+                                        "quality": str,
+                                        "sourceURL": validate.url(),
+                                    },
+                                    validate.transform(
+                                        lambda q: (
+                                            f"{q['quality']}p{q['frameRate']}",
+                                            q["sourceURL"],
+                                        ),
+                                    ),
+                                ),
+                            ],
+                        },
                     },
-                    validate.transform(lambda q: (
-                        f"{q['quality']}p{q['frameRate']}",
-                        q["sourceURL"],
-                    )),
-                )],
-            }}},
-            validate.get(("data", "clip")),
-            validate.union_get(
-                ("playbackAccessToken", "signature"),
-                ("playbackAccessToken", "value"),
-                "videoQualities",
+                },
+                validate.get(("data", "clip")),
+                validate.union_get(
+                    ("playbackAccessToken", "signature"),
+                    ("playbackAccessToken", "value"),
+                    "videoQualities",
+                ),
             ),
-        ))
+        )
 
 
 class TwitchClientIntegrity:
@@ -650,7 +701,7 @@ class TwitchClientIntegrity:
         channel: str,
         headers: Mapping[str, str],
         device_id: str,
-    ) -> Optional[Tuple[str, int]]:
+    ) -> tuple[str, int] | None:
         from streamlink.compat import BaseExceptionGroup  # noqa: PLC0415
         from streamlink.webbrowser.cdp import CDPClient, CDPClientSession, devtools  # noqa: PLC0415
 
@@ -658,10 +709,10 @@ class TwitchClientIntegrity:
         js_get_integrity_token = cls.JS_INTEGRITY_TOKEN \
             .replace("SCRIPT_SOURCE", cls.URL_P_SCRIPT) \
             .replace("HEADERS", json_dumps(headers)) \
-            .replace("DEVICE_ID", device_id)
+            .replace("DEVICE_ID", device_id)  # fmt: skip
         eval_timeout = session.get_option("webbrowser-timeout")
         # noinspection PyUnusedLocal
-        client_integrity: Optional[str] = None
+        client_integrity: str | None = None
 
         async def on_main(client_session: CDPClientSession, request: devtools.fetch.RequestPaused):
             async with client_session.alter_request(request) as cm:
@@ -878,6 +929,7 @@ class Twitch(Plugin):
                     self._checked_metadata = True
                     self._get_metadata()
                 return parent_method()
+
             return inner
 
         parent = super()
@@ -899,7 +951,7 @@ class Twitch(Plugin):
         except (PluginError, TypeError):
             pass
 
-    def _client_integrity_token(self, channel: str) -> Optional[Tuple[str, str]]:
+    def _client_integrity_token(self, channel: str) -> tuple[str, str] | None:
         if self.options.get("purge-client-integrity"):
             log.info("Removing cached client-integrity token...")
             self.cache.set(self._CACHE_KEY_CLIENT_INTEGRITY, None, 0)
@@ -998,10 +1050,12 @@ class Twitch(Plugin):
                 with suppress(PluginError):
                     error = validate.Schema(
                         validate.parse_json(),
-                        [{
-                            "type": "error",
-                            "error": str,
-                        }],
+                        [
+                            {
+                                "type": "error",
+                                "error": str,
+                            },
+                        ],
                         validate.get((0, "error")),
                     ).validate(orig.response.text)
                     # Only log error messages if the channel is actually live
