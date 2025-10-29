@@ -21,13 +21,12 @@ import math
 import re
 import sys
 from collections import deque
-from collections.abc import Mapping
 from contextlib import suppress
 from dataclasses import dataclass, replace as dataclass_replace
-from datetime import datetime, timedelta
+from datetime import timedelta
 from json import dumps as json_dumps
 from random import random
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 from urllib.parse import quote, urlparse
 
 from requests.exceptions import HTTPError
@@ -35,10 +34,9 @@ from requests.exceptions import HTTPError
 from streamlink.exceptions import NoStreamsError, PluginError
 from streamlink.plugin import Plugin, pluginargument, pluginmatcher
 from streamlink.plugin.api import validate
-from streamlink.session import Streamlink, http_useragents
+from streamlink.session import http_useragents
 from streamlink.stream.hls import (
     M3U8,
-    DateRange,
     HLSPlaylist,
     HLSSegment,
     HLSStream,
@@ -55,10 +53,18 @@ from streamlink.utils.times import fromtimestamp, hours_minutes_seconds_float
 from streamlink.utils.url import update_qsd
 
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from datetime import datetime
+
+    from streamlink.session import Streamlink
+    from streamlink.stream.hls import DateRange
+
+
 log = logging.getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "dd7c6fda-master"
+STREAMLINK_TTVLOL_VERSION = "b03fc8f2-master"
 
 
 @dataclass
@@ -168,12 +174,8 @@ class TwitchHLSStreamWorker(HLSStreamWorker):
         self.had_content: bool = False
         self.logged_ads: deque[str] = deque(maxlen=10)
         super().__init__(reader, *args, **kwargs)
-
-    def _playlist_reload_time(self, playlist: TwitchM3U8):  # type: ignore[override]
-        if self.stream.low_latency and playlist.segments:
-            return playlist.segments[-1].duration
-
-        return super()._playlist_reload_time(playlist)
+        if self.stream.low_latency:
+            self.reload_time = "segment"
 
     def process_segments(self, playlist: TwitchM3U8):  # type: ignore[override]
         # ignore prefetch segments if not LL streaming
@@ -713,7 +715,7 @@ class TwitchClientIntegrity:
         device_id: str,
     ) -> tuple[str, int] | None:
         from streamlink.compat import BaseExceptionGroup  # noqa: PLC0415
-        from streamlink.webbrowser.cdp import CDPClient, CDPClientSession, devtools  # noqa: PLC0415
+        from streamlink.webbrowser.cdp import CDPClient, CDPClientSession, devtools  # noqa: PLC0415, TC001
 
         url = f"https://www.twitch.tv/{channel}"
         js_get_integrity_token = cls.JS_INTEGRITY_TOKEN \
