@@ -319,17 +319,20 @@ class NoPlaylistProxyAvailable(Exception):
 
 
 class PlaylistProxyService:
-    def __init__(self, session, playlist_proxies, excluded_channels, fallback):
+    def __init__(self, session, playlist_proxies, excluded_channels, fallback, supported_codecs):
         self.session = session
         self.playlist_proxies = playlist_proxies or []
         self.excluded_channels = map(str.lower, excluded_channels or [])
         self.fallback = fallback
+        self.supported_codecs = supported_codecs
 
     def _append_query_params(self, url):
         params = {
+            "platform": "web",
             "allow_source": "true",
             "allow_audio_only": "true",
             "fast_bread": "true",
+            "supported_codecs": ",".join(self.supported_codecs),
         }
         req = self.session.http.prepare_new_request(url=url, params=params)
 
@@ -949,6 +952,7 @@ class Twitch(Plugin):
                 playlist_proxies=self.get_option("proxy-playlist"),
                 excluded_channels=self.get_option("proxy-playlist-exclude"),
                 fallback=self.get_option("proxy-playlist-fallback"),
+                supported_codecs=self.get_option("supported-codecs"),
         )
 
         self._checked_metadata = False
