@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 45072450..445b0c1b 100644
+index 45072450..7837e1c5 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -27,7 +27,7 @@ from datetime import timedelta
@@ -15,7 +15,7 @@ index 45072450..445b0c1b 100644
  log = getLogger(__name__)
  
  LOW_LATENCY_MAX_LIVE_EDGE = 2
-+STREAMLINK_TTVLOL_VERSION = "d4019e86-master"
++STREAMLINK_TTVLOL_VERSION = "8.2.1-20260305"
  
  
  @dataclass(kw_only=True)
