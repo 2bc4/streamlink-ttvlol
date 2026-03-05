@@ -17,7 +17,6 @@ $notes Acquires a :ref:`client-integrity token <cli/plugins/twitch:Client-integr
 from __future__ import annotations
 
 import argparse
-import logging
 import math
 import re
 import sys
@@ -33,6 +32,7 @@ from urllib.parse import quote, urlparse
 from requests.exceptions import HTTPError
 
 from streamlink.exceptions import NoStreamsError, PluginError
+from streamlink.logger import getLogger
 from streamlink.plugin import Plugin, pluginargument, pluginmatcher
 from streamlink.plugin.api import validate
 from streamlink.session import http_useragents
@@ -45,6 +45,7 @@ from streamlink.stream.hls import (
     HLSStreamWorker,
     HLSStreamWriter,
     M3U8Parser,
+    Media,
     parse_tag,
 )
 from streamlink.stream.http import HTTPStream
@@ -62,10 +63,10 @@ if TYPE_CHECKING:
     from streamlink.stream.hls import DateRange
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "48d2fb38-master"
+STREAMLINK_TTVLOL_VERSION = "d4019e86-master"
 
 
 @dataclass(kw_only=True)
@@ -85,7 +86,7 @@ class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
     __segment__: ClassVar[type[TwitchHLSSegment]] = TwitchHLSSegment
 
     @parse_tag("EXT-X-TWITCH-LIVE-SEQUENCE")
-    def parse_ext_x_twitch_live_sequence(self, value):
+    def parse_ext_x_twitch_live_sequence(self, *_):
         # Unset discontinuity state if the previous segment was not an ad,
         # as the following segment won't be an ad
         if self.m3u8.segments and not self.m3u8.segments[-1].ad:
@@ -105,6 +106,8 @@ class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
 
         # Use the last duration for extrapolating the start time of the prefetch segment, which is needed for checking
         # whether it is an ad segment and matches the parsed date ranges or not
+        if not last.date:
+            return
         date = last.date + timedelta(seconds=last.duration)
 
         # Always treat prefetch segments after a discontinuity as ad segments
@@ -135,7 +138,7 @@ class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
         daterange = self.m3u8.dateranges[-1]
         if self._is_daterange_ad(daterange):
             self.m3u8.dateranges_ads.append(daterange)
-            log.trace(f"Ad daterange: {daterange!r}")  # type: ignore[attr-defined]
+            log.trace("Advertisement: %r", daterange)
 
     def get_segment(self, uri: str, **data) -> TwitchHLSSegment:
         ad = self._is_segment_ad(self._date, self._extinf.title if self._extinf else None)
@@ -151,6 +154,28 @@ class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
             segment.discontinuity = False
 
         return segment
+
+    def get_playlist(self, *args, **kwargs):
+        streaminf = self._streaminf or {}
+        playlist = super().get_playlist(*args, **kwargs)
+        # backwards compatibility for stream names on Usher v2
+        if not playlist.media and (name := streaminf.get("IVS-NAME")):
+            is_audio_only = name in ("audio_only", "audio")  # live + VOD
+            media = Media(
+                uri=None,
+                type="VIDEO",
+                group_id=name,
+                language=None,
+                name=name,
+                default=not is_audio_only,
+                autoselect=not is_audio_only,
+                forced=False,
+                characteristics=None,
+            )
+            playlist.stream_info.video = name
+            playlist.media.append(media)
+
+        return playlist
 
     def _is_segment_ad(self, date: datetime | None, title: str | None = None) -> bool:
         return (
@@ -235,8 +260,6 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
     stream: TwitchHLSStream
 
     def should_filter_segment(self, segment: TwitchHLSSegment) -> bool:  # type: ignore[override]
-        if segment.ad:  # pragma: no cover
-            log.trace(f"Filtering out segment: {segment.num=} {segment.title=} {segment.date=}")  # type: ignore[attr-defined]
         return segment.ad
 
 
@@ -304,12 +327,12 @@ class UsherService:
                     "show_ads": bool,
                 },
             ).validate(extra_params)
-            log.debug(f"{extra_params_debug!r}")
+            log.debug("%r", extra_params_debug)
 
-        return self._create_url(f"/api/channel/hls/{channel.lower()}.m3u8", **extra_params)
+        return self._create_url(f"/api/v2/channel/hls/{channel.lower()}.m3u8", **extra_params)
 
     def video(self, video_id: str, **extra_params) -> str:
-        return self._create_url(f"/vod/{video_id}", **extra_params)
+        return self._create_url(f"/vod/v2/{video_id}.m3u8", **extra_params)
 
 
 class NoPlaylistProxyAvailable(Exception):
@@ -615,8 +638,9 @@ class TwitchAPI:
     def clips(self, clipname):
         query = self._gql_persisted_query(
             "VideoAccessToken_Clip",
-            "36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11",
+            "993d9a5131f15a37bd16f32342c44ed1e0b1a9b968c6afdb662d2cddd595f6c5",
             slug=clipname,
+            platform="web",
         )
 
         return self.call(
@@ -911,8 +935,11 @@ class TwitchClientIntegrity:
 class Twitch(Plugin):
     _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
 
+    api: TwitchAPI
+    usher: UsherService
+
     @classmethod
-    def stream_weight(cls, stream):
+    def stream_weight(cls, stream: str) -> tuple[float, str]:
         if stream == "source":
             return sys.maxsize, stream
         return super().stream_weight(stream)
@@ -1043,27 +1070,27 @@ class Twitch(Plugin):
 
         return sig, token, restricted_bitrates
 
-    def _get_hls_streams_live(self):
+    def _get_hls_streams_live(self, channel: str):
         # only get the token once the channel has been resolved
-        log.debug(f"Getting live HLS streams for {self.channel}")
+        log.debug(f"Getting live HLS streams for {channel}")
         self.session.http.headers.update({
             "referer": "https://player.twitch.tv",
             "origin": "https://player.twitch.tv",
         })
-        sig, token, restricted_bitrates = self._access_token(True, self.channel)
-        url = self.usher.channel(self.channel, sig=sig, token=token, fast_bread=True)
+        sig, token, restricted_bitrates = self._access_token(True, channel)
+        url = self.usher.channel(channel, sig=sig, token=token, fast_bread=True)
 
         return self._get_hls_streams(url, restricted_bitrates)
 
-    def _get_hls_streams_video(self):
+    def _get_hls_streams_video(self, video_id: str):
         log.debug(f"Getting HLS streams for video ID {self.video_id}")
-        sig, token, restricted_bitrates = self._access_token(False, self.video_id)
-        url = self.usher.video(self.video_id, nauthsig=sig, nauth=token)
+        sig, token, restricted_bitrates = self._access_token(False, video_id)
+        url = self.usher.video(video_id, nauthsig=sig, nauth=token)
 
         # If the stream is a VOD that is still being recorded, the stream should start at the beginning of the recording
         return self._get_hls_streams(url, restricted_bitrates, force_restart=True)
 
-    def _get_hls_streams(self, url, restricted_bitrates, **extra_params):
+    def _get_hls_streams(self, url: str, restricted_bitrates: list[str], **extra_params):
         try:
             streams = TwitchHLSStream.parse_variant_playlist(
                 self.session,
@@ -1096,7 +1123,7 @@ class Twitch(Plugin):
                     if self.get_id():
                         log.error(error or "Could not access HLS playlist")
                 # Don't raise and simply return no streams on 4xx/5xx playlist responses
-                return
+                return None
             raise PluginError(err) from err
 
         for name in restricted_bitrates:
@@ -1105,8 +1132,8 @@ class Twitch(Plugin):
 
         return streams
 
-    def _get_clips(self):
-        data = self.api.clips(self.clip_id)
+    def _get_clips(self, clip_id: str):
+        data = self.api.clips(clip_id)
         if not data:
             return
         sig, token, streams = data
@@ -1115,9 +1142,9 @@ class Twitch(Plugin):
 
     def _get_streams(self):
         if self.video_id:
-            return self._get_hls_streams_video()
+            return self._get_hls_streams_video(self.video_id)
         elif self.clip_id:
-            return self._get_clips()
+            return self._get_clips(self.clip_id)
         elif self.channel:
             try:
                 return self.playlist_proxy.streams(
@@ -1126,7 +1153,9 @@ class Twitch(Plugin):
                     low_latency=self.get_option("low-latency"),
                 )
             except NoPlaylistProxyAvailable:
-                return self._get_hls_streams_live()
+                return self._get_hls_streams_live(self.channel)
+
+        return None
 
 
 __plugin__ = Twitch

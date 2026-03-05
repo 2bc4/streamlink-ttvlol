@@ -1,8 +1,8 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 31ad19a3..28ed3bad 100644
+index 45072450..445b0c1b 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
-@@ -28,7 +28,7 @@ from datetime import timedelta
+@@ -27,7 +27,7 @@ from datetime import timedelta
  from json import dumps as json_dumps
  from random import random
  from typing import TYPE_CHECKING, ClassVar
@@ -11,16 +11,16 @@ index 31ad19a3..28ed3bad 100644
  
  from requests.exceptions import HTTPError
  
-@@ -65,6 +65,7 @@ if TYPE_CHECKING:
- log = logging.getLogger(__name__)
+@@ -66,6 +66,7 @@ if TYPE_CHECKING:
+ log = getLogger(__name__)
  
  LOW_LATENCY_MAX_LIVE_EDGE = 2
-+STREAMLINK_TTVLOL_VERSION = "48d2fb38-master"
++STREAMLINK_TTVLOL_VERSION = "d4019e86-master"
  
  
  @dataclass(kw_only=True)
-@@ -311,6 +312,67 @@ class UsherService:
-         return self._create_url(f"/vod/{video_id}", **extra_params)
+@@ -334,6 +335,67 @@ class UsherService:
+         return self._create_url(f"/vod/v2/{video_id}.m3u8", **extra_params)
  
  
 +class NoPlaylistProxyAvailable(Exception):
@@ -87,7 +87,7 @@ index 31ad19a3..28ed3bad 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -807,6 +869,45 @@ class TwitchClientIntegrity:
+@@ -831,6 +893,45 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -133,7 +133,7 @@ index 31ad19a3..28ed3bad 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -819,6 +920,9 @@ class Twitch(Plugin):
+@@ -846,6 +947,9 @@ class Twitch(Plugin):
      def __init__(self, *args, **kwargs):
          super().__init__(*args, **kwargs)
  
@@ -143,7 +143,7 @@ index 31ad19a3..28ed3bad 100644
          params = parse_qsd(urlparse(self.url).query)
  
          self.channel = self.match["channel"] if self.matches["live"] else None
-@@ -843,6 +947,13 @@ class Twitch(Plugin):
+@@ -870,6 +974,13 @@ class Twitch(Plugin):
              session=self.session,
              supported_codecs=self.get_option("supported-codecs"),
          )
@@ -157,11 +157,11 @@ index 31ad19a3..28ed3bad 100644
  
          self._checked_metadata = False
  
-@@ -1008,7 +1119,14 @@ class Twitch(Plugin):
+@@ -1035,7 +1146,15 @@ class Twitch(Plugin):
          elif self.clip_id:
-             return self._get_clips()
+             return self._get_clips(self.clip_id)
          elif self.channel:
--            return self._get_hls_streams_live()
+-            return self._get_hls_streams_live(self.channel)
 +            try:
 +                return self.playlist_proxy.streams(
 +                    channel=self.channel,
@@ -169,7 +169,8 @@ index 31ad19a3..28ed3bad 100644
 +                    low_latency=self.get_option("low-latency"),
 +                )
 +            except NoPlaylistProxyAvailable:
-+                return self._get_hls_streams_live()
++                return self._get_hls_streams_live(self.channel)
++
+         return None
  
  
- __plugin__ = Twitch
