@@ -24,8 +24,7 @@ Copy the command below and paste it into powershell. ***Do not run powershell as
 If you don't know how to open powershell. Press windows key + r and type `powershell` into the box and press enter. Copy the contents of the box below and then right click in the powershell window and press enter:
 
 ```powershell
-$null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile .\AppData\Roaming\streamlink\plugins\twitch.py
-
+$null= New-Item -ItemType Directory -Path $env:APPDATA\streamlink\plugins -Force; iwr -Uri 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py' -OutFile $env:APPDATA\streamlink\plugins\twitch.py
 ```
 
 **NOTE:** If you cannot resolve the URL (receive an error), this is likely due to your TLS version. Run the command below to set your TLS version to 1.2 and re-run the above command:
@@ -37,8 +36,8 @@ $null= New-Item -ItemType Directory -Path .\AppData\Roaming\streamlink\plugins -
 ### Manually
 Navigate to:
 
-```
-C:\Users\%username%\AppData\Roaming\streamlink
+```powershell
+C:\Users\YOURUSERNAME\AppData\Roaming\streamlink
 ```
 
 Then create the `plugins` folder and drop the `twitch.py` inside of it.
@@ -48,14 +47,14 @@ Then create the `plugins` folder and drop the `twitch.py` inside of it.
 
 Run the below command in a terminal:
 
-```sh
+```bash
 INSTALL_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
 ```
 
 ### Manually
 Copy the `twitch.py` file to:
 
-```
+```bash
 ~/.local/share/streamlink/plugins
 ```
 
@@ -64,14 +63,14 @@ Copy the `twitch.py` file to:
 
 Run the below command in terminal:
 
-```sh
+```zsh
 INSTALL_DIR="${HOME}/Library/Application Support/streamlink/plugins"; mkdir -p "$INSTALL_DIR"; curl -L -o "$INSTALL_DIR"/twitch.py 'https://github.com/2bc4/streamlink-ttvlol/releases/latest/download/twitch.py'
 ```
 
 ### Manually
 Copy the `twitch.py` file to:
 
-```
+```zsh
 ${HOME}/Library/Application Support/streamlink/plugins
 ```
 
