@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 log = getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "9bf2427e-master"
+STREAMLINK_TTVLOL_VERSION = "8.3.0-20260420"
 
 
 @dataclass(kw_only=True)
