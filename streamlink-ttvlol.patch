@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 9b0365f6..6ede2e05 100644
+index 9b0365f6..4665a37a 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -27,7 +27,7 @@ from datetime import timedelta
@@ -19,7 +19,7 @@ index 9b0365f6..6ede2e05 100644
  
  
  @dataclass(kw_only=True)
-@@ -334,6 +335,67 @@ class UsherService:
+@@ -334,6 +335,71 @@ class UsherService:
          return self._create_url(f"/vod/v2/{video_id}.m3u8", **extra_params)
  
  
@@ -30,12 +30,13 @@ index 9b0365f6..6ede2e05 100644
 +
 +
 +class PlaylistProxyService:
-+    def __init__(self, session, playlist_proxies, excluded_channels, fallback, supported_codecs):
++    def __init__(self, session, playlist_proxies, excluded_channels, fallback, supported_codecs, api):
 +        self.session = session
 +        self.playlist_proxies = playlist_proxies or []
 +        self.excluded_channels = map(str.lower, excluded_channels or [])
 +        self.fallback = fallback
 +        self.supported_codecs = supported_codecs
++        self.api = api
 +
 +    def _append_query_params(self, url):
 +        params = {
@@ -56,6 +57,9 @@ index 9b0365f6..6ede2e05 100644
 +        if channel in self.excluded_channels:
 +            log.info(f"Channel {channel} excluded from playlist proxy")
 +            raise NoPlaylistProxyAvailable
++
++        if not self.api.is_channel_live(channel):
++            raise NoStreamsError
 +
 +        log.debug(f"Getting live HLS streams for {channel}")
 +        self.session.http.headers.update({
@@ -87,7 +91,39 @@ index 9b0365f6..6ede2e05 100644
  class TwitchAPI:
      CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
  
-@@ -831,6 +893,45 @@ class TwitchClientIntegrity:
+@@ -621,6 +687,31 @@ class TwitchAPI:
+             ),
+         )
+ 
++    def is_channel_live(self, channel):
++        query = self._gql_persisted_query(
++            "StreamMetadata",
++            "b57f9b910f8cd1a4659d894fe7550ccc81ec9052c01e438b290fd66a040b9b93",
++            channelLogin=channel,
++            includeIsDJ=True,
++        )
++
++        stream = self.call(
++            query,
++            schema=validate.all(
++                {
++                    "data": {
++                        "user": validate.none_or_all(
++                            {"stream": validate.none_or_all({"id": str})},
++                            validate.get(("stream",)),
++                        ),
++                    },
++                },
++                validate.get(("data", "user")),
++            ),
++        )
++
++        return stream is not None
++
+ 
+ class TwitchClientIntegrity:
+     URL_P_SCRIPT = "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js"
+@@ -831,6 +922,45 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -133,7 +169,7 @@ index 9b0365f6..6ede2e05 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -846,6 +947,9 @@ class Twitch(Plugin):
+@@ -846,6 +976,9 @@ class Twitch(Plugin):
      def __init__(self, *args, **kwargs):
          super().__init__(*args, **kwargs)
  
@@ -143,7 +179,7 @@ index 9b0365f6..6ede2e05 100644
          params = parse_qsd(urlparse(self.url).query)
  
          self.channel = self.match["channel"] if self.matches["live"] else None
-@@ -870,6 +974,13 @@ class Twitch(Plugin):
+@@ -870,6 +1003,14 @@ class Twitch(Plugin):
              session=self.session,
              supported_codecs=self.get_option("supported-codecs"),
          )
@@ -153,11 +189,12 @@ index 9b0365f6..6ede2e05 100644
 +                excluded_channels=self.get_option("proxy-playlist-exclude"),
 +                fallback=self.get_option("proxy-playlist-fallback"),
 +                supported_codecs=self.get_option("supported-codecs"),
++                api=self.api,
 +        )
  
          self._checked_metadata = False
  
-@@ -1035,7 +1146,15 @@ class Twitch(Plugin):
+@@ -1035,7 +1176,15 @@ class Twitch(Plugin):
          elif self.clip_id:
              return self._get_clips(self.clip_id)
          elif self.channel:

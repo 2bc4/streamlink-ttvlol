@@ -342,12 +342,13 @@ class NoPlaylistProxyAvailable(Exception):
 
 
 class PlaylistProxyService:
-    def __init__(self, session, playlist_proxies, excluded_channels, fallback, supported_codecs):
+    def __init__(self, session, playlist_proxies, excluded_channels, fallback, supported_codecs, api):
         self.session = session
         self.playlist_proxies = playlist_proxies or []
         self.excluded_channels = map(str.lower, excluded_channels or [])
         self.fallback = fallback
         self.supported_codecs = supported_codecs
+        self.api = api
 
     def _append_query_params(self, url):
         params = {
@@ -368,6 +369,9 @@ class PlaylistProxyService:
         if channel in self.excluded_channels:
             log.info(f"Channel {channel} excluded from playlist proxy")
             raise NoPlaylistProxyAvailable
+
+        if not self.api.is_channel_live(channel):
+            raise NoStreamsError
 
         log.debug(f"Getting live HLS streams for {channel}")
         self.session.http.headers.update({
@@ -683,6 +687,31 @@ class TwitchAPI:
             ),
         )
 
+    def is_channel_live(self, channel):
+        query = self._gql_persisted_query(
+            "StreamMetadata",
+            "b57f9b910f8cd1a4659d894fe7550ccc81ec9052c01e438b290fd66a040b9b93",
+            channelLogin=channel,
+            includeIsDJ=True,
+        )
+
+        stream = self.call(
+            query,
+            schema=validate.all(
+                {
+                    "data": {
+                        "user": validate.none_or_all(
+                            {"stream": validate.none_or_all({"id": str})},
+                            validate.get(("stream",)),
+                        ),
+                    },
+                },
+                validate.get(("data", "user")),
+            ),
+        )
+
+        return stream is not None
+
 
 class TwitchClientIntegrity:
     URL_P_SCRIPT = "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js"
@@ -980,6 +1009,7 @@ class Twitch(Plugin):
                 excluded_channels=self.get_option("proxy-playlist-exclude"),
                 fallback=self.get_option("proxy-playlist-fallback"),
                 supported_codecs=self.get_option("supported-codecs"),
+                api=self.api,
         )
 
         self._checked_metadata = False
