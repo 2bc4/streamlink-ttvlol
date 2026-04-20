@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 log = getLogger(__name__)
 
 LOW_LATENCY_MAX_LIVE_EDGE = 2
-STREAMLINK_TTVLOL_VERSION = "d4019e86-master"
+STREAMLINK_TTVLOL_VERSION = "9bf2427e-master"
 
 
 @dataclass(kw_only=True)
@@ -142,7 +142,7 @@ class TwitchM3U8Parser(M3U8Parser[TwitchM3U8, TwitchHLSSegment, HLSPlaylist]):
 
     def get_segment(self, uri: str, **data) -> TwitchHLSSegment:
         ad = self._is_segment_ad(self._date, self._extinf.title if self._extinf else None)
-        segment: TwitchHLSSegment = super().get_segment(uri, ad=ad, prefetch=False)  # type: ignore[assignment]
+        segment: TwitchHLSSegment = super().get_segment(uri, ad=ad, prefetch=False)  # type: ignore[assignment, ty:invalid-assignment]
 
         # Special case where Twitch incorrectly inserts discontinuity tags between segments of the live content
         if (
@@ -203,7 +203,7 @@ class TwitchHLSStreamWorker(HLSStreamWorker):
         if self.stream.low_latency:
             self.reload_time = "segment"
 
-    def process_segments(self, playlist: TwitchM3U8):  # type: ignore[override]
+    def process_segments(self, playlist: TwitchM3U8):  # type: ignore[override, ty:invalid-method-override]
         # ignore prefetch segments if not LL streaming
         if not self.stream.low_latency:
             playlist.segments = [segment for segment in playlist.segments if not segment.prefetch]
@@ -259,7 +259,7 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
     reader: TwitchHLSStreamReader
     stream: TwitchHLSStream
 
-    def should_filter_segment(self, segment: TwitchHLSSegment) -> bool:  # type: ignore[override]
+    def should_filter_segment(self, segment: TwitchHLSSegment) -> bool:  # type: ignore[override, ty:invalid-method-override]
         return segment.ad
 
 
