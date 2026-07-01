@@ -929,21 +929,7 @@ class TwitchClientIntegrity:
     "proxy-playlist",
     metavar="URLS",
     type="comma_list",
-    help="""
-        Proxy the playlist request through a server specified at <URL>.
-
-        If the URL has no path the playlist will be requested using the TTVLOL API.
-        If the URL path includes [channel] the playlist will not be requested with the TTVLOL API and
-        [channel] will be replaced with the channel name at runtime.
-
-        Can be multiple comma separated server URLs to be used as fallback.
-
-        When used the Twitch GraphQL API will not be called.
-        Only livestreams will use the playlist proxy, VODs and clips will use upstream behavior.
-        Integrity token retrieval will not be attempted.
-        --twitch-api-header, --twitch-access-token-param, and --twitch-purge-client-integrity will have no effect.
-        It will also not be possible to check for subscriber only streams.
-    """,
+    help="Proxy the playlist request through a server specified at <URL>.",
 )
 @pluginargument(
     "proxy-playlist-exclude",

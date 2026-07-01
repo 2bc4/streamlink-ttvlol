@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index c9ee8e53..f4cd7d79 100644
+index c9ee8e53..168a1807 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -27,7 +27,7 @@ from datetime import timedelta
@@ -127,7 +127,7 @@ index c9ee8e53..f4cd7d79 100644
  
  class TwitchClientIntegrity:
      URL_P_SCRIPT = "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js"
-@@ -830,6 +925,45 @@ class TwitchClientIntegrity:
+@@ -830,6 +925,31 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -135,21 +135,7 @@ index c9ee8e53..f4cd7d79 100644
 +    "proxy-playlist",
 +    metavar="URLS",
 +    type="comma_list",
-+    help="""
-+        Proxy the playlist request through a server specified at <URL>.
-+
-+        If the URL has no path the playlist will be requested using the TTVLOL API.
-+        If the URL path includes [channel] the playlist will not be requested with the TTVLOL API and
-+        [channel] will be replaced with the channel name at runtime.
-+
-+        Can be multiple comma separated server URLs to be used as fallback.
-+
-+        When used the Twitch GraphQL API will not be called.
-+        Only livestreams will use the playlist proxy, VODs and clips will use upstream behavior.
-+        Integrity token retrieval will not be attempted.
-+        --twitch-api-header, --twitch-access-token-param, and --twitch-purge-client-integrity will have no effect.
-+        It will also not be possible to check for subscriber only streams.
-+    """,
++    help="Proxy the playlist request through a server specified at <URL>.",
 +)
 +@pluginargument(
 +    "proxy-playlist-exclude",
@@ -173,7 +159,7 @@ index c9ee8e53..f4cd7d79 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -845,6 +979,9 @@ class Twitch(Plugin):
+@@ -845,6 +965,9 @@ class Twitch(Plugin):
      def __init__(self, *args, **kwargs):
          super().__init__(*args, **kwargs)
  
@@ -183,7 +169,7 @@ index c9ee8e53..f4cd7d79 100644
          params = parse_qsd(urlparse(self.url).query)
  
          self.channel = self.match["channel"] if self.matches["live"] else None
-@@ -869,7 +1006,7 @@ class Twitch(Plugin):
+@@ -869,7 +992,7 @@ class Twitch(Plugin):
              session=self.session,
              supported_codecs=self.get_option("supported-codecs"),
          )
@@ -192,7 +178,7 @@ index c9ee8e53..f4cd7d79 100644
          self._checked_metadata = False
  
          def method_factory(parent_method):
-@@ -1031,7 +1168,12 @@ class Twitch(Plugin):
+@@ -1031,7 +1154,12 @@ class Twitch(Plugin):
          elif self.clip_id:
              return self._get_clips(self.clip_id)
          elif self.channel:
