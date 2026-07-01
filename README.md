@@ -3,8 +3,6 @@
 
 [Streamlink](https://streamlink.github.io) Twitch plugin modified to work with the [TTV.LOL](https://github.com/TTV-LOL/extensions) API. This proxies the playlist request to a country where Twitch does not serve ads. Note that TTV.LOL-like APIs can still rarely return a playlist with ads, if this happens you'll need to restart streamlink to get a different playlist or switch between proxies.
 
-Not compatible with TTV-LOL-PRO v2 proxies.
-
 ## Installation
 ***Follow the instructions below for your specific operating system.***
 
@@ -100,7 +98,11 @@ Example:
 Enable if Streamlink should fallback to Twitch servers if all requests to playlist proxies fail.
 
 ## Known compatible public proxy servers
-[TTV-LOL-PRO](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032) v1 servers:
+[TTV-LOL-PRO v2](https://github.com/younesaassila/ttv-lol-pro):
+- `httpproxy://chromium.api.cdn-perfprod.com:2023`
+- `httpproxy://firefox.api.cdn-perfprod.com:2023`
+
+[TTV-LOL-PRO v1](https://github.com/younesaassila/ttv-lol-pro/discussions/37#discussioncomment-5426032):
 - `https://lb-eu.cdn-perfprod.com` (Europe)
 - `https://lb-eu2.cdn-perfprod.com` (Europe 2)
 - `https://lb-eu3.cdn-perfprod.com` (Europe 3, using Russia-only proxies)

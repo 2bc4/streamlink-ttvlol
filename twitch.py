@@ -335,20 +335,10 @@ class UsherService:
         return self._create_url(f"/vod/v2/{video_id}.m3u8", **extra_params)
 
 
-class NoPlaylistProxyAvailable(Exception):
-    """
-    No playlist proxies available.
-    """
-
-
 class PlaylistProxyService:
-    def __init__(self, session, playlist_proxies, excluded_channels, fallback, supported_codecs, api):
-        self.session = session
-        self.playlist_proxies = playlist_proxies or []
-        self.excluded_channels = map(str.lower, excluded_channels or [])
-        self.fallback = fallback
-        self.supported_codecs = supported_codecs
-        self.api = api
+    def __init__(self, plugin):
+        self.plugin = plugin
+        self.playlist_proxies = self.plugin.get_option("proxy-playlist") or []
 
     def _append_query_params(self, url):
         params = {
@@ -356,46 +346,60 @@ class PlaylistProxyService:
             "allow_source": "true",
             "allow_audio_only": "true",
             "fast_bread": "true",
-            "supported_codecs": ",".join(self.supported_codecs),
+            "supported_codecs": ",".join(self.plugin.get_option("supported-codecs")),
         }
-        req = self.session.http.prepare_new_request(url=url, params=params)
+        req = self.plugin.session.http.prepare_new_request(url=url, params=params)
 
         return req.url
 
     def streams(self, channel, **kwargs):
         if not self.playlist_proxies:
-            raise NoPlaylistProxyAvailable
+            return self.plugin._get_hls_streams_live(channel)
 
-        if channel in self.excluded_channels:
+        if channel in map(str.lower, self.plugin.get_option("proxy-playlist-exclude") or []):
             log.info(f"Channel {channel} excluded from playlist proxy")
-            raise NoPlaylistProxyAvailable
+            return self.plugin._get_hls_streams_live(channel)
 
-        if not self.api.is_channel_live(channel):
+        if not self.plugin.api.is_channel_live(channel):
             raise NoStreamsError
 
         log.debug(f"Getting live HLS streams for {channel}")
-        self.session.http.headers.update({
+        self.plugin.session.http.headers.update({
             "referer": "https://player.twitch.tv",
             "origin": "https://player.twitch.tv",
         })
         for proxy in self.playlist_proxies:
-            url = re.sub(r"\[channel\]", channel, proxy)
-            parsed_url = urlparse(url)
+            parsed_url = urlparse(proxy)
+            if parsed_url.scheme == "httpproxy":
+                log.info(f"Using HTTP proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
+                self.plugin.session.http.proxies = {
+                    "http": f"http://{parsed_url.netloc}",
+                    "https": f"http://{parsed_url.netloc}",
+                }
+                try:
+                    return self.plugin._get_hls_streams_live(channel)
+                except OSError as err:
+                    log.error(err)
+                finally:
+                    self.plugin.session.http.proxies = {}
+            else:
+                url = re.sub(r"\[channel\]", channel, proxy)
+                parsed_url = urlparse(url)
 
-            if url == proxy:
-                url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
-            elif not parsed_url.query:
-                url = self._append_query_params(url)
+                if url == proxy:
+                    url = quote(self._append_query_params(url + f"/playlist/{channel}.m3u8"), safe=":/")
+                elif not parsed_url.query:
+                    url = self._append_query_params(url)
 
-            log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
-            try:
-                return TwitchHLSStream.parse_variant_playlist(self.session, url, **kwargs)
-            except OSError as err:
-                log.error(err)
+                log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
+                try:
+                    return TwitchHLSStream.parse_variant_playlist(self.plugin.session, url, **kwargs)
+                except OSError as err:
+                    log.error(err)
 
-        if self.fallback:
+        if self.plugin.get_option("proxy-playlist-fallback"):
             log.info("No playlist proxies available, falling back to Twitch servers")
-            raise NoPlaylistProxyAvailable
+            return self.plugin._get_hls_streams_live(channel)
 
         raise NoStreamsError
 
@@ -1003,15 +1007,7 @@ class Twitch(Plugin):
             session=self.session,
             supported_codecs=self.get_option("supported-codecs"),
         )
-        self.playlist_proxy = PlaylistProxyService(
-                session=self.session,
-                playlist_proxies=self.get_option("proxy-playlist"),
-                excluded_channels=self.get_option("proxy-playlist-exclude"),
-                fallback=self.get_option("proxy-playlist-fallback"),
-                supported_codecs=self.get_option("supported-codecs"),
-                api=self.api,
-        )
-
+        self.playlist_proxy = PlaylistProxyService(self)
         self._checked_metadata = False
 
         def method_factory(parent_method):
@@ -1176,14 +1172,11 @@ class Twitch(Plugin):
         elif self.clip_id:
             return self._get_clips(self.clip_id)
         elif self.channel:
-            try:
-                return self.playlist_proxy.streams(
-                    channel=self.channel,
-                    disable_ads=self.get_option("disable-ads"),
-                    low_latency=self.get_option("low-latency"),
-                )
-            except NoPlaylistProxyAvailable:
-                return self._get_hls_streams_live(self.channel)
+            return self.playlist_proxy.streams(
+                channel=self.channel,
+                disable_ads=self.get_option("disable-ads"),
+                low_latency=self.get_option("low-latency"),
+            )
 
         return None
 
