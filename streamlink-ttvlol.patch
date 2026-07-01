@@ -1,5 +1,5 @@
 diff --git a/src/streamlink/plugins/twitch.py b/src/streamlink/plugins/twitch.py
-index 9b0365f6..a29d3b5b 100644
+index c9ee8e53..f4cd7d79 100644
 --- a/src/streamlink/plugins/twitch.py
 +++ b/src/streamlink/plugins/twitch.py
 @@ -27,7 +27,7 @@ from datetime import timedelta
@@ -15,7 +15,7 @@ index 9b0365f6..a29d3b5b 100644
  log = getLogger(__name__)
  
  LOW_LATENCY_MAX_LIVE_EDGE = 2
-+STREAMLINK_TTVLOL_VERSION = "9bf2427e-master"
++STREAMLINK_TTVLOL_VERSION = "4d8e2ef0-master"
  
  
  @dataclass(kw_only=True)
@@ -127,7 +127,7 @@ index 9b0365f6..a29d3b5b 100644
  
  class TwitchClientIntegrity:
      URL_P_SCRIPT = "https://k.twitchcdn.net/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/p.js"
-@@ -831,6 +926,45 @@ class TwitchClientIntegrity:
+@@ -830,6 +925,45 @@ class TwitchClientIntegrity:
      action="store_true",
      help="Purge cached Twitch client-integrity token and acquire a new one.",
  )
@@ -173,7 +173,7 @@ index 9b0365f6..a29d3b5b 100644
  class Twitch(Plugin):
      _CACHE_KEY_CLIENT_INTEGRITY = "client-integrity"
  
-@@ -846,6 +980,9 @@ class Twitch(Plugin):
+@@ -845,6 +979,9 @@ class Twitch(Plugin):
      def __init__(self, *args, **kwargs):
          super().__init__(*args, **kwargs)
  
@@ -183,7 +183,7 @@ index 9b0365f6..a29d3b5b 100644
          params = parse_qsd(urlparse(self.url).query)
  
          self.channel = self.match["channel"] if self.matches["live"] else None
-@@ -870,7 +1007,7 @@ class Twitch(Plugin):
+@@ -869,7 +1006,7 @@ class Twitch(Plugin):
              session=self.session,
              supported_codecs=self.get_option("supported-codecs"),
          )
@@ -192,7 +192,7 @@ index 9b0365f6..a29d3b5b 100644
          self._checked_metadata = False
  
          def method_factory(parent_method):
-@@ -1035,7 +1172,12 @@ class Twitch(Plugin):
+@@ -1031,7 +1168,12 @@ class Twitch(Plugin):
          elif self.clip_id:
              return self._get_clips(self.clip_id)
          elif self.channel:
