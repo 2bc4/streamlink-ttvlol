@@ -1,3 +1,5 @@
+httpproxy://chromium.api.cdn-perfprod.com:2023
+httpproxy://firefox.api.cdn-perfprod.com:2023
 https://lb-eu.cdn-perfprod.com
 https://lb-eu2.cdn-perfprod.com
 https://lb-eu3.cdn-perfprod.com
